@@ -19,6 +19,8 @@ repositories {
 }
 
 dependencies {
+    // Tess4J for local OCR
+    implementation 'net.sourceforge.tess4j:tess4j:5.10.0'
     // For automatic reload during development
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     // Spring Boot starters - use dependency management for consistent versions

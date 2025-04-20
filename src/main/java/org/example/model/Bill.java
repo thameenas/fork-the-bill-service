@@ -30,6 +30,7 @@ public class Bill {
 
     private double tax;
     private double serviceCharge;
+    private double totalAmount;
     private String status;
     private LocalDateTime createdAt;
 }

@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,8 +20,24 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 @RequestMapping("/bill")
 @Tag(name = "Bill", description = "Endpoints for managing bills")
 public class BillController {
+
     @Autowired
     private BillService billService;
+
+    @Operation(summary = "Extract bill data from image and create the bill", description = "Extracts structured bill data from an uploaded image using OCR. The image is not stored.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Bill data extracted successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid image or extraction failed")
+    })
+    @PostMapping("/extract")
+    public ResponseEntity<?> createBillFromReceipt(@RequestParam("file") MultipartFile file) {
+        try {
+            Bill extractedBill = billService.createBillFromReceipt(file);
+            return ResponseEntity.ok(extractedBill);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to extract bill data: " + e.getMessage());
+        }
+    }
 
     @Operation(summary = "Create a new bill", description = "Creates a new bill with the provided details.")
     @ApiResponses({
