@@ -19,6 +19,8 @@ repositories {
 }
 
 dependencies {
+    // For automatic reload during development
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
     // Spring Boot starters - use dependency management for consistent versions
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-web'
