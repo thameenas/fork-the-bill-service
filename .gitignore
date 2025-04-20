@@ -1,0 +1,26 @@
+# Gradle project-specific cache directory
+.gradle/
+
+# Gradle build output directory
+build/
+
+# IDE/editor config
+.vscode/
+.idea/
+*.iml
+
+# Compiled classes and binaries
+bin/
+
+# Local database
+fork-the-bill.db
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Other
+*.swp
