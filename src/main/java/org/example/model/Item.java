@@ -1,10 +1,13 @@
 package org.example.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -14,13 +17,15 @@ import java.util.List;
 public class Item {
     @Id
     private String id;
-    @jakarta.validation.constraints.NotBlank(message = "Name is required")
+
+    @NotBlank(message = "Name is required")
     private String name;
-    @jakarta.validation.constraints.NotNull(message = "Amount is required")
+
+    @NotNull(message = "Amount is required")
     private Double amount;
 
-    @ElementCollection
-    @jakarta.validation.constraints.NotNull(message = "assignedTo is required")
-    @jakarta.validation.constraints.Size(min = 1, message = "At least one assignee required")
-    private List<String> assignedTo;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "item_assignees", joinColumns = @JoinColumn(name = "item_id"))
+    @Column(name = "assignee")
+    private List<String> assignedTo = new ArrayList<>();
 }

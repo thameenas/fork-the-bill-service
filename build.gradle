@@ -6,9 +6,9 @@
  */
 
 plugins {
-    id 'org.springframework.boot' version '3.4.4'
-    id 'io.spring.dependency-management' version '1.1.4'
     id 'java'
+    id 'org.springframework.boot' version '3.2.5'
+    id 'io.spring.dependency-management' version '1.1.4'
 }
 
 repositories {
@@ -19,16 +19,25 @@ repositories {
 }
 
 dependencies {
-    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
+    // Spring Boot starters - use dependency management for consistent versions
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-web:3.2.5'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa:3.2.5'
-    implementation 'jakarta.persistence:jakarta.persistence-api:3.1.0'
-    implementation 'org.xerial:sqlite-jdbc:3.45.2.0'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    
+    // OpenAPI/Swagger - use compatible version with Spring Boot 3.2.x
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+    
+    // Database
+    implementation 'org.xerial:sqlite-jdbc:3.44.1.0'
     implementation 'org.hibernate.orm:hibernate-community-dialects:6.4.4.Final'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test:3.2.5'
+    
+    // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+    
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 java {
