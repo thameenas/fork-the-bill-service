@@ -14,8 +14,11 @@ import java.util.List;
 public class Participant {
     @Id
     private String id;
+    @jakarta.validation.constraints.NotBlank(message = "Name is required")
     private String name;
 
     @ElementCollection
+    @jakarta.validation.constraints.NotNull(message = "selectedItems is required")
+    @jakarta.validation.constraints.Size(min = 1, message = "At least one selected item required")
     private List<String> selectedItems;
 }

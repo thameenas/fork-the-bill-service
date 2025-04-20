@@ -14,9 +14,13 @@ import java.util.List;
 public class Item {
     @Id
     private String id;
+    @jakarta.validation.constraints.NotBlank(message = "Name is required")
     private String name;
-    private double amount;
+    @jakarta.validation.constraints.NotNull(message = "Amount is required")
+    private Double amount;
 
     @ElementCollection
+    @jakarta.validation.constraints.NotNull(message = "assignedTo is required")
+    @jakarta.validation.constraints.Size(min = 1, message = "At least one assignee required")
     private List<String> assignedTo;
 }
