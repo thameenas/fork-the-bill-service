@@ -1,5 +1,6 @@
 package com.forkthebill.service.services;
 
+import com.forkthebill.service.exceptions.ValidationException;
 import com.forkthebill.service.models.dto.ExpenseRequest;
 import com.forkthebill.service.models.dto.ExpenseResponse;
 import com.forkthebill.service.models.dto.ItemRequest;
@@ -107,7 +108,7 @@ public class ExpenseServiceTest {
 
         // When/Then
         assertThatThrownBy(() -> expenseService.createExpense(request))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(ValidationException.class)
                 .hasMessageContaining("Total amount must equal subtotal + tax + tip");
     }
     

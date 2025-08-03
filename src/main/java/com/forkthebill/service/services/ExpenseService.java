@@ -1,5 +1,6 @@
 package com.forkthebill.service.services;
 
+import com.forkthebill.service.exceptions.ValidationException;
 import com.forkthebill.service.models.dto.ExpenseRequest;
 import com.forkthebill.service.models.dto.ExpenseResponse;
 import com.forkthebill.service.models.dto.ItemResponse;
@@ -79,7 +80,7 @@ public class ExpenseService {
         BigDecimal calculatedTotal = request.getSubtotal().add(request.getTax()).add(request.getTip());
         
         if (request.getTotalAmount().compareTo(calculatedTotal) != 0) {
-            throw new IllegalArgumentException("Total amount must equal subtotal + tax + tip");
+            throw new ValidationException("Total amount must equal subtotal + tax + tip");
         }
     }
     
