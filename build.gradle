@@ -28,9 +28,6 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     
-    // Random word generator for slug generation
-    implementation 'com.github.jtchen:randword:1.0.0'
-    
     // Development tools
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     
