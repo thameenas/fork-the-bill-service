@@ -19,9 +19,17 @@ dependencies {
     // Core Spring Boot starters
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
     
     // PostgreSQL driver
     implementation 'org.postgresql:postgresql'
+    
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    
+    // Random word generator for slug generation
+    implementation 'com.github.jtchen:randword:1.0.0'
     
     // Development tools
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
