@@ -1,5 +1,6 @@
 package com.forkthebill.service.services;
 
+import com.forkthebill.service.exceptions.ResourceNotFoundException;
 import com.forkthebill.service.exceptions.ValidationException;
 import com.forkthebill.service.models.dto.ExpenseRequest;
 import com.forkthebill.service.models.dto.ExpenseResponse;
@@ -19,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -110,6 +112,47 @@ public class ExpenseServiceTest {
         assertThatThrownBy(() -> expenseService.createExpense(request))
                 .isInstanceOf(ValidationException.class)
                 .hasMessageContaining("Total amount must equal subtotal + tax + tip");
+    }
+    
+    @Test
+    public void getExpenseBySlug_shouldReturnExpense_whenExpenseExists() {
+        // Given
+        String slug = "test-slug";
+        Expense expense = Expense.builder()
+                .id("1")
+                .slug(slug)
+                .createdAt(LocalDateTime.now())
+                .payerName("John Doe")
+                .totalAmount(new BigDecimal("100.00"))
+                .subtotal(new BigDecimal("80.00"))
+                .tax(new BigDecimal("10.00"))
+                .tip(new BigDecimal("10.00"))
+                .items(new ArrayList<>())
+                .people(new ArrayList<>())
+                .build();
+        
+        when(expenseRepository.findBySlug(slug)).thenReturn(Optional.of(expense));
+        
+        // When
+        ExpenseResponse response = expenseService.getExpenseBySlug(slug);
+        
+        // Then
+        assertThat(response.getId()).isEqualTo("1");
+        assertThat(response.getSlug()).isEqualTo(slug);
+        assertThat(response.getPayerName()).isEqualTo("John Doe");
+        assertThat(response.getTotalAmount()).isEqualByComparingTo(new BigDecimal("100.00"));
+    }
+    
+    @Test
+    public void getExpenseBySlug_shouldThrowException_whenExpenseDoesNotExist() {
+        // Given
+        String slug = "non-existent-slug";
+        when(expenseRepository.findBySlug(slug)).thenReturn(Optional.empty());
+        
+        // When/Then
+        assertThatThrownBy(() -> expenseService.getExpenseBySlug(slug))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Expense not found with slug: " + slug);
     }
     
     private ExpenseRequest createValidExpenseRequest() {

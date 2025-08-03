@@ -1,6 +1,7 @@
 package com.forkthebill.service.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.forkthebill.service.exceptions.ResourceNotFoundException;
 import com.forkthebill.service.models.dto.ExpenseRequest;
 import com.forkthebill.service.models.dto.ExpenseResponse;
 import com.forkthebill.service.models.dto.ItemRequest;
@@ -21,6 +22,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -72,6 +74,43 @@ public class ExpenseControllerTest {
                 .andExpect(jsonPath("$.slug").value("test-slug"))
                 .andExpect(jsonPath("$.payerName").value(request.getPayerName()))
                 .andExpect(jsonPath("$.totalAmount").value(request.getTotalAmount().doubleValue()));
+    }
+    
+    @Test
+    public void getExpenseBySlug_shouldReturnExpense_whenExpenseExists() throws Exception {
+        // Given
+        String slug = "test-slug";
+        ExpenseResponse response = ExpenseResponse.builder()
+                .id("1")
+                .slug(slug)
+                .createdAt(LocalDateTime.now())
+                .payerName("John Doe")
+                .totalAmount(new BigDecimal("100.00"))
+                .subtotal(new BigDecimal("80.00"))
+                .tax(new BigDecimal("10.00"))
+                .tip(new BigDecimal("10.00"))
+                .build();
+        
+        when(expenseService.getExpenseBySlug(slug)).thenReturn(response);
+        
+        // When & Then
+        mockMvc.perform(get("/expense/{slug}", slug))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("1"))
+                .andExpect(jsonPath("$.slug").value(slug))
+                .andExpect(jsonPath("$.payerName").value("John Doe"))
+                .andExpect(jsonPath("$.totalAmount").value(100.00));
+    }
+    
+    @Test
+    public void getExpenseBySlug_shouldReturn404_whenExpenseDoesNotExist() throws Exception {
+        // Given
+        String slug = "non-existent-slug";
+        when(expenseService.getExpenseBySlug(slug)).thenThrow(new ResourceNotFoundException("Expense not found with slug: " + slug));
+        
+        // When & Then
+        mockMvc.perform(get("/expense/{slug}", slug))
+                .andExpect(status().isNotFound());
     }
     
     private ExpenseRequest createValidExpenseRequest() {

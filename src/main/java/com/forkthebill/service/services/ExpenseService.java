@@ -1,5 +1,6 @@
 package com.forkthebill.service.services;
 
+import com.forkthebill.service.exceptions.ResourceNotFoundException;
 import com.forkthebill.service.exceptions.ValidationException;
 import com.forkthebill.service.models.dto.ExpenseRequest;
 import com.forkthebill.service.models.dto.ExpenseResponse;
@@ -74,6 +75,13 @@ public class ExpenseService {
         Expense savedExpense = expenseRepository.save(expense);
         
         return mapToExpenseResponse(savedExpense);
+    }
+    
+    public ExpenseResponse getExpenseBySlug(String slug) {
+        Expense expense = expenseRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Expense not found with slug: " + slug));
+        
+        return mapToExpenseResponse(expense);
     }
     
     private void validateExpenseRequest(ExpenseRequest request) {

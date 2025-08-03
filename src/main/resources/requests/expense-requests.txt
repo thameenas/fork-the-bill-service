@@ -76,3 +76,7 @@ curl -X POST http://localhost:8080/expense \
   "subtotal": 80.00,
   "tax": 10.00
 }'
+
+# Get an expense by slug
+curl -X GET http://localhost:8080/expense/test-slug \
+  -H "Accept: application/json"
