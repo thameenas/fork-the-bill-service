@@ -1,0 +1,78 @@
+# Create a new expense
+curl -X POST http://localhost:8080/expense \
+  -H "Content-Type: application/json" \
+  -d '{
+  "payerName": "John Doe",
+  "totalAmount": 100.00,
+  "subtotal": 80.00,
+  "tax": 10.00,
+  "tip": 10.00,
+  "items": [
+    {
+      "name": "Burger",
+      "price": 15.00
+    },
+    {
+      "name": "Fries",
+      "price": 5.00
+    },
+    {
+      "name": "Pizza",
+      "price": 20.00
+    },
+    {
+      "name": "Salad",
+      "price": 10.00
+    },
+    {
+      "name": "Soda",
+      "price": 5.00
+    },
+    {
+      "name": "Dessert",
+      "price": 25.00
+    }
+  ],
+  "people": [
+    {
+      "name": "Alice"
+    },
+    {
+      "name": "Bob"
+    },
+    {
+      "name": "Charlie"
+    }
+  ]
+}'
+
+# Create an expense with validation error (totalAmount != subtotal + tax + tip)
+curl -X POST http://localhost:8080/expense \
+  -H "Content-Type: application/json" \
+  -d '{
+  "payerName": "John Doe",
+  "totalAmount": 105.00,
+  "subtotal": 80.00,
+  "tax": 10.00,
+  "tip": 10.00,
+  "items": [
+    {
+      "name": "Burger",
+      "price": 15.00
+    },
+    {
+      "name": "Fries",
+      "price": 5.00
+    }
+  ]
+}'
+
+# Create an expense with missing required fields
+curl -X POST http://localhost:8080/expense \
+  -H "Content-Type: application/json" \
+  -d '{
+  "payerName": "John Doe",
+  "totalAmount": 100.00,
+  "subtotal": 80.00,
+  "tax": 10.00
+}'
