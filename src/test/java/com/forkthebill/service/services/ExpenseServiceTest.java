@@ -6,6 +6,7 @@ import com.forkthebill.service.models.dto.ExpenseRequest;
 import com.forkthebill.service.models.dto.ExpenseResponse;
 import com.forkthebill.service.models.dto.ItemRequest;
 import com.forkthebill.service.models.entities.Expense;
+import com.forkthebill.service.models.entities.Item;
 import com.forkthebill.service.repositories.ExpenseRepository;
 import com.forkthebill.service.utils.SlugGenerator;
 import org.junit.jupiter.api.BeforeEach;
@@ -153,6 +154,119 @@ public class ExpenseServiceTest {
         assertThatThrownBy(() -> expenseService.getExpenseBySlug(slug))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Expense not found with slug: " + slug);
+    }
+    
+    @Test
+    public void updateExpenseBySlug_shouldUpdateAndReturnExpense_whenExpenseExists() {
+        // Given
+        String slug = "test-slug";
+        ExpenseRequest updateRequest = ExpenseRequest.builder()
+                .payerName("Jane Doe") // Changed from John Doe
+                .totalAmount(new BigDecimal("120.00")) // Changed from 100.00
+                .subtotal(new BigDecimal("100.00")) // Changed from 80.00
+                .tax(new BigDecimal("10.00"))
+                .tip(new BigDecimal("10.00"))
+                .items(List.of(
+                        ItemRequest.builder()
+                                .name("Pizza")
+                                .price(new BigDecimal("100.00"))
+                                .build()
+                ))
+                .build();
+        
+        Expense existingExpense = Expense.builder()
+                .id("1")
+                .slug(slug)
+                .createdAt(LocalDateTime.now())
+                .payerName("John Doe")
+                .totalAmount(new BigDecimal("100.00"))
+                .subtotal(new BigDecimal("80.00"))
+                .tax(new BigDecimal("10.00"))
+                .tip(new BigDecimal("10.00"))
+                .items(new ArrayList<>())
+                .people(new ArrayList<>())
+                .build();
+        
+        Item item = Item.builder()
+                .name("Burger")
+                .price(new BigDecimal("80.00"))
+                .claimedBy(new ArrayList<>())
+                .build();
+        existingExpense.addItem(item);
+        
+        when(expenseRepository.findBySlug(slug)).thenReturn(Optional.of(existingExpense));
+        when(expenseRepository.save(any(Expense.class))).thenReturn(existingExpense);
+        
+        // When
+        ExpenseResponse response = expenseService.updateExpenseBySlug(slug, updateRequest);
+        
+        // Then
+        verify(expenseRepository).save(expenseCaptor.capture());
+        Expense capturedExpense = expenseCaptor.getValue();
+        
+        assertThat(capturedExpense.getPayerName()).isEqualTo("Jane Doe");
+        assertThat(capturedExpense.getTotalAmount()).isEqualByComparingTo(new BigDecimal("120.00"));
+        assertThat(capturedExpense.getSubtotal()).isEqualByComparingTo(new BigDecimal("100.00"));
+        assertThat(capturedExpense.getItems()).hasSize(1);
+        assertThat(capturedExpense.getItems().get(0).getName()).isEqualTo("Pizza");
+        assertThat(capturedExpense.getItems().get(0).getPrice()).isEqualByComparingTo(new BigDecimal("100.00"));
+        
+        assertThat(response.getPayerName()).isEqualTo("Jane Doe");
+        assertThat(response.getTotalAmount()).isEqualByComparingTo(new BigDecimal("120.00"));
+        assertThat(response.getSubtotal()).isEqualByComparingTo(new BigDecimal("100.00"));
+    }
+    
+    @Test
+    public void updateExpenseBySlug_shouldThrowException_whenExpenseDoesNotExist() {
+        // Given
+        String slug = "non-existent-slug";
+        ExpenseRequest updateRequest = createValidExpenseRequest();
+        
+        when(expenseRepository.findBySlug(slug)).thenReturn(Optional.empty());
+        
+        // When/Then
+        assertThatThrownBy(() -> expenseService.updateExpenseBySlug(slug, updateRequest))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Expense not found with slug: " + slug);
+    }
+    
+    @Test
+    public void updateExpenseBySlug_shouldThrowException_whenTotalAmountDoesNotMatchCalculatedTotal() {
+        // Given
+        String slug = "test-slug";
+        ExpenseRequest updateRequest = ExpenseRequest.builder()
+                .payerName("Jane Doe")
+                .totalAmount(new BigDecimal("120.00"))
+                .subtotal(new BigDecimal("100.00"))
+                .tax(new BigDecimal("10.00"))
+                .tip(new BigDecimal("5.00")) // This makes the total 115, not 120
+                .items(List.of(
+                        ItemRequest.builder()
+                                .name("Pizza")
+                                .price(new BigDecimal("100.00"))
+                                .build()
+                ))
+                .build();
+        
+        Expense existingExpense = Expense.builder()
+                .id("1")
+                .slug(slug)
+                .createdAt(LocalDateTime.now())
+                .payerName("John Doe")
+                .totalAmount(new BigDecimal("100.00"))
+                .subtotal(new BigDecimal("80.00"))
+                .tax(new BigDecimal("10.00"))
+                .tip(new BigDecimal("10.00"))
+                .items(new ArrayList<>())
+                .people(new ArrayList<>())
+                .build();
+        
+        when(expenseRepository.findBySlug(slug)).thenReturn(Optional.of(existingExpense));
+        
+        // When/Then
+        assertThatThrownBy(() -> expenseService.updateExpenseBySlug(slug, updateRequest))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("Total amount must equal subtotal + tax + tip");
     }
     
     private ExpenseRequest createValidExpenseRequest() {

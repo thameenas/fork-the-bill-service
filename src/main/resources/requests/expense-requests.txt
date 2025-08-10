@@ -80,3 +80,40 @@ curl -X POST http://localhost:8080/expense \
 # Get an expense by slug
 curl -X GET http://localhost:8080/expense/test-slug \
   -H "Accept: application/json"
+
+# Update an expense by slug
+curl -X PUT http://localhost:8080/expense/test-slug \
+  -H "Content-Type: application/json" \
+  -d '{
+  "payerName": "Jane Doe",
+  "totalAmount": 120.00,
+  "subtotal": 100.00,
+  "tax": 10.00,
+  "tip": 10.00,
+  "items": [
+    {
+      "name": "Pizza",
+      "price": 25.00
+    },
+    {
+      "name": "Pasta",
+      "price": 20.00
+    },
+    {
+      "name": "Salad",
+      "price": 15.00
+    },
+    {
+      "name": "Garlic Bread",
+      "price": 10.00
+    },
+    {
+      "name": "Soda",
+      "price": 5.00
+    },
+    {
+      "name": "Dessert",
+      "price": 25.00
+    }
+  ]
+}'

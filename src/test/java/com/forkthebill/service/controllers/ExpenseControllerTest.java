@@ -2,6 +2,7 @@ package com.forkthebill.service.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.forkthebill.service.exceptions.ResourceNotFoundException;
+import com.forkthebill.service.exceptions.ValidationException;
 import com.forkthebill.service.models.dto.ExpenseRequest;
 import com.forkthebill.service.models.dto.ExpenseResponse;
 import com.forkthebill.service.models.dto.ItemRequest;
@@ -21,9 +22,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -111,6 +114,81 @@ public class ExpenseControllerTest {
         // When & Then
         mockMvc.perform(get("/expense/{slug}", slug))
                 .andExpect(status().isNotFound());
+    }
+    
+    @Test
+    public void updateExpenseBySlug_shouldReturnUpdatedExpense_whenExpenseExists() throws Exception {
+        // Given
+        String slug = "test-slug";
+        ExpenseRequest request = createValidExpenseRequest();
+        request.setPayerName("Jane Doe"); // Changed from John Doe
+        
+        ExpenseResponse response = ExpenseResponse.builder()
+                .id("1")
+                .slug(slug)
+                .createdAt(LocalDateTime.now())
+                .payerName(request.getPayerName())
+                .totalAmount(request.getTotalAmount())
+                .subtotal(request.getSubtotal())
+                .tax(request.getTax())
+                .tip(request.getTip())
+                .build();
+        
+        when(expenseService.updateExpenseBySlug(eq(slug), any(ExpenseRequest.class))).thenReturn(response);
+        
+        // When & Then
+        mockMvc.perform(put("/expense/{slug}", slug)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("1"))
+                .andExpect(jsonPath("$.slug").value(slug))
+                .andExpect(jsonPath("$.payerName").value("Jane Doe"))
+                .andExpect(jsonPath("$.totalAmount").value(request.getTotalAmount().doubleValue()));
+    }
+    
+    @Test
+    public void updateExpenseBySlug_shouldReturn404_whenExpenseDoesNotExist() throws Exception {
+        // Given
+        String slug = "non-existent-slug";
+        ExpenseRequest request = createValidExpenseRequest();
+        
+        when(expenseService.updateExpenseBySlug(eq(slug), any(ExpenseRequest.class)))
+                .thenThrow(new ResourceNotFoundException("Expense not found with slug: " + slug));
+        
+        // When & Then
+        mockMvc.perform(put("/expense/{slug}", slug)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound());
+    }
+    
+    @Test
+    public void updateExpenseBySlug_shouldReturn400_whenValidationFails() throws Exception {
+        // Given
+        String slug = "test-slug";
+        ExpenseRequest request = ExpenseRequest.builder()
+                .payerName("John Doe")
+                .totalAmount(new BigDecimal("100.00"))
+                .subtotal(new BigDecimal("80.00"))
+                .tax(new BigDecimal("10.00"))
+                .tip(new BigDecimal("5.00")) // This makes the total 95, not 100
+                .items(List.of(
+                        ItemRequest.builder()
+                                .name("Burger")
+                                .price(new BigDecimal("80.00"))
+                                .build()
+                ))
+                .build();
+        
+        when(expenseService.updateExpenseBySlug(eq(slug), any(ExpenseRequest.class)))
+                .thenThrow(new ValidationException("Total amount must equal subtotal + tax + tip"));
+        
+        // When & Then
+        mockMvc.perform(put("/expense/{slug}", slug)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
     }
     
     private ExpenseRequest createValidExpenseRequest() {

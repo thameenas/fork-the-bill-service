@@ -84,6 +84,37 @@ public class ExpenseService {
         return mapToExpenseResponse(expense);
     }
     
+    @Transactional
+    public ExpenseResponse updateExpenseBySlug(String slug, ExpenseRequest request) {
+        validateExpenseRequest(request);
+        
+        Expense expense = expenseRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Expense not found with slug: " + slug));
+        
+        // Update basic expense properties
+        expense.setPayerName(request.getPayerName());
+        expense.setTotalAmount(request.getTotalAmount());
+        expense.setSubtotal(request.getSubtotal());
+        expense.setTax(request.getTax());
+        expense.setTip(request.getTip());
+        
+        // Clear existing items and add new ones
+        expense.getItems().clear();
+        
+        request.getItems().forEach(itemRequest -> {
+            Item item = Item.builder()
+                    .name(itemRequest.getName())
+                    .price(itemRequest.getPrice())
+                    .claimedBy(new ArrayList<>())
+                    .build();
+            expense.addItem(item);
+        });
+        
+        Expense updatedExpense = expenseRepository.save(expense);
+        
+        return mapToExpenseResponse(updatedExpense);
+    }
+    
     private void validateExpenseRequest(ExpenseRequest request) {
         BigDecimal calculatedTotal = request.getSubtotal().add(request.getTax()).add(request.getTip());
         
