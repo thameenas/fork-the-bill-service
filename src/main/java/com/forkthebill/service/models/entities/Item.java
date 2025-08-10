@@ -10,6 +10,7 @@ import lombok.ToString;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "items")
@@ -37,5 +38,5 @@ public class Item {
     @CollectionTable(name = "item_claimed_by", joinColumns = @JoinColumn(name = "item_id"))
     @Column(name = "person_id")
     @Builder.Default
-    private List<Long> claimedBy = new ArrayList<>();
+    private List<UUID> claimedBy = new ArrayList<>();
 }

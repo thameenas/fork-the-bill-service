@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import com.forkthebill.service.exceptions.ResourceNotFoundException;
 
@@ -79,7 +80,7 @@ public class Expense {
         person.setExpense(null);
     }
 
-    public Person findPersonById(Long personId) {
+    public Person findPersonById(UUID personId) {
         return people.stream()
                 .filter(p -> p.getId().equals(personId))
                 .findFirst()
@@ -93,7 +94,7 @@ public class Expense {
                 .orElseThrow(() -> new ResourceNotFoundException("Item not found with ID: " + itemId));
     }
 
-    public void claimItem(String itemId, Long personId) {
+    public void claimItem(String itemId, UUID personId) {
         Person person = findPersonById(personId);
         Item item = findItemById(itemId);
         
@@ -110,7 +111,7 @@ public class Expense {
         recalculateAmounts();
     }
 
-    public void unclaimItem(String itemId, Long personId) {
+    public void unclaimItem(String itemId, UUID personId) {
         Person person = findPersonById(personId);
         Item item = findItemById(itemId);
         

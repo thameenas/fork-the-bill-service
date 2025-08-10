@@ -27,6 +27,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -211,8 +212,9 @@ public class ExpenseControllerTest {
         // Given
         String slug = "test-slug";
         String itemId = "item-1";
+        UUID personId = UUID.randomUUID();
         ClaimItemRequest request = ClaimItemRequest.builder()
-                .personId(1L)
+                .personId(personId)
                 .build();
         
         ExpenseResponse response = ExpenseResponse.builder()
@@ -226,7 +228,7 @@ public class ExpenseControllerTest {
                 .tip(new BigDecimal("10.00"))
                 .build();
         
-        when(expenseService.claimItem(eq(slug), eq(itemId), eq(1L))).thenReturn(response);
+        when(expenseService.claimItem(eq(slug), eq(itemId), eq(personId))).thenReturn(response);
         
         // When & Then
         mockMvc.perform(post("/expense/{slug}/items/{itemId}/claim", slug, itemId)
@@ -242,11 +244,12 @@ public class ExpenseControllerTest {
         // Given
         String slug = "non-existent-slug";
         String itemId = "item-1";
+        UUID personId = UUID.randomUUID();
         ClaimItemRequest request = ClaimItemRequest.builder()
-                .personId(1L)
+                .personId(personId)
                 .build();
         
-        when(expenseService.claimItem(eq(slug), eq(itemId), eq(1L)))
+        when(expenseService.claimItem(eq(slug), eq(itemId), eq(personId)))
                 .thenThrow(new ResourceNotFoundException("Expense not found with slug: " + slug));
         
         // When & Then
@@ -261,11 +264,12 @@ public class ExpenseControllerTest {
         // Given
         String slug = "test-slug";
         String itemId = "item-1";
+        UUID personId = UUID.randomUUID();
         ClaimItemRequest request = ClaimItemRequest.builder()
-                .personId(1L)
+                .personId(personId)
                 .build();
         
-        when(expenseService.claimItem(eq(slug), eq(itemId), eq(1L)))
+        when(expenseService.claimItem(eq(slug), eq(itemId), eq(personId)))
                 .thenThrow(new ValidationException("Item is already claimed by this person"));
         
         // When & Then
@@ -280,7 +284,7 @@ public class ExpenseControllerTest {
         // Given
         String slug = "test-slug";
         String itemId = "item-1";
-        Long personId = 1L;
+        UUID personId = UUID.randomUUID();
 
         ExpenseResponse response = ExpenseResponse.builder()
                 .id("1")
@@ -307,7 +311,7 @@ public class ExpenseControllerTest {
         // Given
         String slug = "non-existent-slug";
         String itemId = "item-1";
-        Long personId = 1L;
+        UUID personId = UUID.randomUUID();
         
         when(expenseService.unclaimItem(eq(slug), eq(itemId), eq(personId)))
                 .thenThrow(new ResourceNotFoundException("Expense not found with slug: " + slug));
@@ -322,7 +326,7 @@ public class ExpenseControllerTest {
         // Given
         String slug = "test-slug";
         String itemId = "item-1";
-        Long personId = 1L;
+        UUID personId = UUID.randomUUID();
         
         when(expenseService.unclaimItem(eq(slug), eq(itemId), eq(personId)))
                 .thenThrow(new ValidationException("Item is not claimed by this person"));
@@ -336,7 +340,7 @@ public class ExpenseControllerTest {
     public void markPersonAsFinished_shouldReturn200_whenSuccessful() throws Exception {
         // Given
         String slug = "test-slug";
-        Long personId = 1L;
+        UUID personId = UUID.randomUUID();
         
         // When & Then
         mockMvc.perform(put("/expense/{slug}/people/{personId}/finish", slug, personId))
@@ -349,7 +353,7 @@ public class ExpenseControllerTest {
     public void markPersonAsFinished_shouldReturn404_whenExpenseNotFound() throws Exception {
         // Given
         String slug = "non-existent-slug";
-        Long personId = 1L;
+        UUID personId = UUID.randomUUID();
         
         doThrow(new ResourceNotFoundException("Expense not found with slug: " + slug))
                 .when(expenseService).markPersonAsFinished(slug, personId);
@@ -363,7 +367,7 @@ public class ExpenseControllerTest {
     public void markPersonAsFinished_shouldReturn404_whenPersonNotFound() throws Exception {
         // Given
         String slug = "test-slug";
-        Long personId = 999L;
+        UUID personId = UUID.randomUUID();
         
         doThrow(new ResourceNotFoundException("Person not found with ID: " + personId))
                 .when(expenseService).markPersonAsFinished(slug, personId);
@@ -377,7 +381,7 @@ public class ExpenseControllerTest {
     public void markPersonAsPending_shouldReturn200_whenSuccessful() throws Exception {
         // Given
         String slug = "test-slug";
-        Long personId = 1L;
+        UUID personId = UUID.randomUUID();
         
         // When & Then
         mockMvc.perform(put("/expense/{slug}/people/{personId}/pending", slug, personId))
@@ -390,7 +394,7 @@ public class ExpenseControllerTest {
     public void markPersonAsPending_shouldReturn404_whenExpenseNotFound() throws Exception {
         // Given
         String slug = "non-existent-slug";
-        Long personId = 1L;
+        UUID personId = UUID.randomUUID();
         
         doThrow(new ResourceNotFoundException("Expense not found with slug: " + slug))
                 .when(expenseService).markPersonAsPending(slug, personId);
@@ -404,7 +408,7 @@ public class ExpenseControllerTest {
     public void markPersonAsPending_shouldReturn404_whenPersonNotFound() throws Exception {
         // Given
         String slug = "test-slug";
-        Long personId = 999L;
+        UUID personId = UUID.randomUUID();
         
         doThrow(new ResourceNotFoundException("Person not found with ID: " + personId))
                 .when(expenseService).markPersonAsPending(slug, personId);
@@ -418,7 +422,7 @@ public class ExpenseControllerTest {
     void markPersonAsPending_ShouldCallServiceAndReturnOk() {
         // Given
         String slug = "test-slug";
-        Long personId = 1L;
+        UUID personId = UUID.randomUUID();
 
         // When
         ResponseEntity<Void> response = expenseController.markPersonAsPending(slug, personId);

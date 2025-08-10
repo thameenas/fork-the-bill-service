@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.forkthebill.service.models.dto.PersonRequest;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/expense")
 @RequiredArgsConstructor
@@ -58,7 +60,7 @@ public class ExpenseController {
     public ResponseEntity<ExpenseResponse> unclaimItem(
             @PathVariable String slug,
             @PathVariable String itemId,
-            @PathVariable Long personId) {
+            @PathVariable UUID personId) {
         ExpenseResponse response = expenseService.unclaimItem(slug, itemId, personId);
         return ResponseEntity.ok(response);
     }
@@ -66,7 +68,7 @@ public class ExpenseController {
     @PutMapping("/{slug}/people/{personId}/finish")
     public ResponseEntity<Void> markPersonAsFinished(
             @PathVariable String slug,
-            @PathVariable Long personId) {
+            @PathVariable UUID personId) {
         expenseService.markPersonAsFinished(slug, personId);
         return ResponseEntity.ok().build();
     }
@@ -74,7 +76,7 @@ public class ExpenseController {
     @PutMapping("/{slug}/people/{personId}/pending")
     public ResponseEntity<Void> markPersonAsPending(
             @PathVariable String slug,
-            @PathVariable Long personId) {
+            @PathVariable UUID personId) {
         expenseService.markPersonAsPending(slug, personId);
         return ResponseEntity.ok().build();
     }

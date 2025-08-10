@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -19,5 +20,5 @@ public class ItemResponse {
     private BigDecimal price;
     
     @Builder.Default
-    private List<Long> claimedBy = new ArrayList<>();
+    private List<UUID> claimedBy = new ArrayList<>();
 }

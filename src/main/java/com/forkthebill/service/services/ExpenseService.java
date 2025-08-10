@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import com.forkthebill.service.models.dto.PersonRequest;
 
@@ -167,7 +168,7 @@ public class ExpenseService {
     }
 
     @Transactional
-    public ExpenseResponse claimItem(String slug, String itemId, Long personId) {
+    public ExpenseResponse claimItem(String slug, String itemId, UUID personId) {
         Expense expense = expenseRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Expense not found with slug: " + slug));
         
@@ -194,7 +195,7 @@ public class ExpenseService {
     }
 
     @Transactional
-    public ExpenseResponse unclaimItem(String slug, String itemId, Long personId) {
+    public ExpenseResponse unclaimItem(String slug, String itemId, UUID personId) {
         Expense expense = expenseRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Expense not found with slug: " + slug));
         
@@ -221,7 +222,7 @@ public class ExpenseService {
     }
 
     @Transactional
-    public void markPersonAsFinished(String slug, Long personId) {
+    public void markPersonAsFinished(String slug, UUID personId) {
         Expense expense = expenseRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Expense not found with slug: " + slug));
         
@@ -232,7 +233,7 @@ public class ExpenseService {
     }
 
     @Transactional
-    public void markPersonAsPending(String slug, Long personId) {
+    public void markPersonAsPending(String slug, UUID personId) {
         Expense expense = expenseRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Expense not found with slug: " + slug));
         

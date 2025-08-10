@@ -6,11 +6,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class ClaimItemRequest {
     @NotNull(message = "Person ID is required")
-    private Long personId;
+    private UUID personId;
 }

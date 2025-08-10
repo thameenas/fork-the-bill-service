@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -49,7 +49,7 @@ class ExpenseTest {
                 .build();
 
         person1 = Person.builder()
-                .id(1L)
+                .id(UUID.randomUUID())
                 .name("Alice")
                 .itemsClaimed(new ArrayList<>())
                 .amountOwed(BigDecimal.ZERO)
@@ -61,7 +61,7 @@ class ExpenseTest {
                 .build();
 
         person2 = Person.builder()
-                .id(2L)
+                .id(UUID.randomUUID())
                 .name("Bob")
                 .itemsClaimed(new ArrayList<>())
                 .amountOwed(BigDecimal.ZERO)
@@ -181,7 +181,7 @@ class ExpenseTest {
         // Given
         expense.addPerson(person1);
         Person nonExistentPerson = Person.builder()
-                .id(999L)
+                .id(UUID.randomUUID())
                 .name("Non-existent")
                 .itemsClaimed(new ArrayList<>())
                 .amountOwed(BigDecimal.ZERO)
@@ -207,7 +207,7 @@ class ExpenseTest {
         expense.addPerson(person2);
 
         // When
-        Person foundPerson = expense.findPersonById(1L);
+        Person foundPerson = expense.findPersonById(person1.getId());
 
         // Then
         assertEquals(person1, foundPerson);
@@ -220,7 +220,7 @@ class ExpenseTest {
 
         // When & Then
         assertThrows(ResourceNotFoundException.class, () -> {
-            expense.findPersonById(999L);
+            expense.findPersonById(UUID.randomUUID());
         });
     }
 
@@ -255,10 +255,10 @@ class ExpenseTest {
         expense.addPerson(person1);
 
         // When
-        expense.claimItem("item-1", 1L);
+        expense.claimItem("item-1", person1.getId());
 
         // Then
-        assertTrue(item1.getClaimedBy().contains(1L));
+        assertTrue(item1.getClaimedBy().contains(person1.getId()));
         assertTrue(person1.getItemsClaimed().contains("item-1"));
     }
 
@@ -267,10 +267,10 @@ class ExpenseTest {
         // Given
         expense.addItem(item1);
         expense.addPerson(person1);
-        expense.claimItem("item-1", 1L);
+        expense.claimItem("item-1", person1.getId());
 
         // When
-        expense.claimItem("item-1", 1L);
+        expense.claimItem("item-1", person1.getId());
 
         // Then
         assertEquals(1, item1.getClaimedBy().size());
@@ -285,13 +285,13 @@ class ExpenseTest {
         expense.addPerson(person2);
 
         // When
-        expense.claimItem("item-1", 1L);
-        expense.claimItem("item-1", 2L);
+        expense.claimItem("item-1", person1.getId());
+        expense.claimItem("item-1", person2.getId());
 
         // Then
         assertEquals(2, item1.getClaimedBy().size());
-        assertTrue(item1.getClaimedBy().contains(1L));
-        assertTrue(item1.getClaimedBy().contains(2L));
+        assertTrue(item1.getClaimedBy().contains(person1.getId()));
+        assertTrue(item1.getClaimedBy().contains(person2.getId()));
         assertTrue(person1.getItemsClaimed().contains("item-1"));
         assertTrue(person2.getItemsClaimed().contains("item-1"));
     }
@@ -301,13 +301,13 @@ class ExpenseTest {
         // Given
         expense.addItem(item1);
         expense.addPerson(person1);
-        expense.claimItem("item-1", 1L);
+        expense.claimItem("item-1", person1.getId());
 
         // When
-        expense.unclaimItem("item-1", 1L);
+        expense.unclaimItem("item-1", person1.getId());
 
         // Then
-        assertFalse(item1.getClaimedBy().contains(1L));
+        assertFalse(item1.getClaimedBy().contains(person1.getId()));
         assertFalse(person1.getItemsClaimed().contains("item-1"));
     }
 
@@ -318,10 +318,10 @@ class ExpenseTest {
         expense.addPerson(person1);
 
         // When
-        expense.unclaimItem("item-1", 1L);
+        expense.unclaimItem("item-1", person1.getId());
 
         // Then
-        assertFalse(item1.getClaimedBy().contains(1L));
+        assertFalse(item1.getClaimedBy().contains(person1.getId()));
         assertFalse(person1.getItemsClaimed().contains("item-1"));
     }
 
@@ -332,7 +332,7 @@ class ExpenseTest {
         expense.addPerson(person1);
 
         // When
-        expense.claimItem("item-1", 1L);
+        expense.claimItem("item-1", person1.getId());
 
         // Then
         assertTrue(person1.getSubtotal().compareTo(BigDecimal.ZERO) > 0);
@@ -344,10 +344,10 @@ class ExpenseTest {
         // Given
         expense.addItem(item1);
         expense.addPerson(person1);
-        expense.claimItem("item-1", 1L);
+        expense.claimItem("item-1", person1.getId());
 
         // When
-        expense.unclaimItem("item-1", 1L);
+        expense.unclaimItem("item-1", person1.getId());
 
         // Then
         assertEquals(0, person1.getSubtotal().compareTo(BigDecimal.ZERO));
@@ -362,8 +362,8 @@ class ExpenseTest {
         expense.addPerson(person2);
 
         // When - both people claim the same $50 item
-        expense.claimItem("item-1", 1L);
-        expense.claimItem("item-1", 2L);
+        expense.claimItem("item-1", person1.getId());
+        expense.claimItem("item-1", person2.getId());
 
         // Then - each person should owe $25.00 for the item
         assertEquals(new BigDecimal("25.00"), person1.getSubtotal());
@@ -382,7 +382,7 @@ class ExpenseTest {
         expense.setSubtotal(BigDecimal.ZERO);
         expense.addItem(item1);
         expense.addPerson(person1);
-        expense.claimItem("item-1", 1L);
+        expense.claimItem("item-1", person1.getId());
 
         // When
         expense.recalculateAmounts();
@@ -397,7 +397,7 @@ class ExpenseTest {
         // Given
         expense.addItem(item1);
         expense.addPerson(person1);
-        expense.claimItem("item-1", 1L);
+        expense.claimItem("item-1", person1.getId());
 
         // When
         expense.recalculateAmounts();
@@ -416,7 +416,7 @@ class ExpenseTest {
 
         // When & Then
         assertThrows(ResourceNotFoundException.class, () -> {
-            expense.claimItem("item-1", 999L);
+            expense.claimItem("item-1", UUID.randomUUID());
         });
     }
 
@@ -427,7 +427,7 @@ class ExpenseTest {
 
         // When & Then
         assertThrows(ResourceNotFoundException.class, () -> {
-            expense.claimItem("non-existent", 1L);
+            expense.claimItem("non-existent", person1.getId());
         });
     }
 
@@ -438,7 +438,7 @@ class ExpenseTest {
 
         // When & Then
         assertThrows(ResourceNotFoundException.class, () -> {
-            expense.unclaimItem("item-1", 999L);
+            expense.unclaimItem("item-1", UUID.randomUUID());
         });
     }
 
@@ -449,7 +449,7 @@ class ExpenseTest {
 
         // When & Then
         assertThrows(ResourceNotFoundException.class, () -> {
-            expense.unclaimItem("non-existent", 1L);
+            expense.unclaimItem("non-existent", person1.getId());
         });
     }
 
@@ -476,9 +476,9 @@ class ExpenseTest {
         expense.addPerson(person2);
 
         // When
-        expense.claimItem("item-1", 1L); // person1 claims item1
-        expense.claimItem("item-1", 2L); // person2 claims item1
-        expense.claimItem("item-2", 1L); // person1 claims item2
+        expense.claimItem("item-1", person1.getId()); // person1 claims item1
+        expense.claimItem("item-1", person2.getId()); // person2 claims item1
+        expense.claimItem("item-2", person1.getId()); // person1 claims item2
 
         // Then
         // person1: $25.00 (half of item1) + $30.00 (all of item2) = $55.00

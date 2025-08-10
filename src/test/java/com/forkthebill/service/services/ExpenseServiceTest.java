@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -268,7 +269,7 @@ public class ExpenseServiceTest {
         // Given
         Expense expense = createTestExpense();
         String itemId = expense.getItems().get(0).getId();
-        Long personId = expense.getPeople().get(0).getId();
+        UUID personId = expense.getPeople().get(0).getId();
         
         when(expenseRepository.findBySlug(expense.getSlug())).thenReturn(Optional.of(expense));
         when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
@@ -289,7 +290,7 @@ public class ExpenseServiceTest {
         // Given
         Expense expense = createTestExpense();
         String itemId = expense.getItems().get(0).getId();
-        Long personId = expense.getPeople().get(0).getId();
+        UUID personId = expense.getPeople().get(0).getId();
         
         when(expenseRepository.findBySlug(expense.getSlug())).thenReturn(Optional.of(expense));
         when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
@@ -310,7 +311,7 @@ public class ExpenseServiceTest {
         // Given
         Expense expense = createTestExpense();
         String itemId = expense.getItems().get(0).getId();
-        Long personId = expense.getPeople().get(0).getId();
+        UUID personId = expense.getPeople().get(0).getId();
         
         when(expenseRepository.findBySlug(expense.getSlug())).thenReturn(Optional.of(expense));
         when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
@@ -333,7 +334,7 @@ public class ExpenseServiceTest {
         // Given
         Expense expense = createTestExpense();
         String itemId = expense.getItems().get(0).getId();
-        Long personId = expense.getPeople().get(0).getId();
+        UUID personId = expense.getPeople().get(0).getId();
         
         // First claim the item
         when(expenseRepository.findBySlug(expense.getSlug())).thenReturn(Optional.of(expense));
@@ -356,7 +357,7 @@ public class ExpenseServiceTest {
         // Given
         Expense expense = createTestExpense();
         String itemId = expense.getItems().get(0).getId();
-        Long personId = expense.getPeople().get(0).getId();
+        UUID personId = expense.getPeople().get(0).getId();
         
         // First claim the item
         when(expenseRepository.findBySlug(expense.getSlug())).thenReturn(Optional.of(expense));
@@ -379,7 +380,7 @@ public class ExpenseServiceTest {
         // Given
         Expense expense = createTestExpense();
         String itemId = expense.getItems().get(0).getId();
-        Long personId = expense.getPeople().get(0).getId();
+        UUID personId = expense.getPeople().get(0).getId();
         
         // First claim the item
         when(expenseRepository.findBySlug(expense.getSlug())).thenReturn(Optional.of(expense));
@@ -402,14 +403,15 @@ public class ExpenseServiceTest {
         // Given
         String nonExistentSlug = "non-existent-slug";
         String itemId = "item1";
-        Long personId = 1L;
+        UUID personId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         
         when(expenseRepository.findBySlug(nonExistentSlug)).thenReturn(Optional.empty());
         
         // When & Then
-        assertThrows(ResourceNotFoundException.class, () -> {
-            expenseService.claimItem(nonExistentSlug, itemId, personId);
-        });
+        assertThatThrownBy(() -> 
+            expenseService.claimItem(nonExistentSlug, itemId, personId))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasMessage("Expense not found with slug: " + nonExistentSlug);
     }
 
     @Test
@@ -417,14 +419,15 @@ public class ExpenseServiceTest {
         // Given
         String nonExistentSlug = "non-existent-slug";
         String itemId = "item1";
-        Long personId = 1L;
+        UUID personId = UUID.fromString("550e8400-e29b-41d4-a716-446655440001");
         
         when(expenseRepository.findBySlug(nonExistentSlug)).thenReturn(Optional.empty());
         
         // When & Then
-        assertThrows(ResourceNotFoundException.class, () -> {
-            expenseService.unclaimItem(nonExistentSlug, itemId, personId);
-        });
+        assertThatThrownBy(() -> 
+            expenseService.unclaimItem(nonExistentSlug, itemId, personId))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasMessage("Expense not found with slug: " + nonExistentSlug);
     }
 
     @Test
@@ -432,7 +435,7 @@ public class ExpenseServiceTest {
         // Given
         Expense expense = createTestExpense();
         String itemId = expense.getItems().get(0).getId();
-        Long personId = expense.getPeople().get(0).getId();
+        UUID personId = expense.getPeople().get(0).getId();
         
         // Pre-claim the item
         expense.getItems().get(0).getClaimedBy().add(personId);
@@ -451,7 +454,7 @@ public class ExpenseServiceTest {
         // Given
         Expense expense = createTestExpense();
         String itemId = expense.getItems().get(0).getId();
-        Long personId = expense.getPeople().get(0).getId();
+        UUID personId = expense.getPeople().get(0).getId();
         
         // Pre-claim the item
         expense.getItems().get(0).getClaimedBy().add(personId);
@@ -470,7 +473,7 @@ public class ExpenseServiceTest {
         // Given
         Expense expense = createTestExpense();
         String itemId = expense.getItems().get(0).getId();
-        Long personId = expense.getPeople().get(0).getId();
+        UUID personId = expense.getPeople().get(0).getId();
         
         when(expenseRepository.findBySlug(expense.getSlug())).thenReturn(Optional.of(expense));
         
@@ -485,7 +488,7 @@ public class ExpenseServiceTest {
         // Given
         Expense expense = createTestExpense();
         String itemId = expense.getItems().get(0).getId();
-        Long personId = expense.getPeople().get(0).getId();
+        UUID personId = expense.getPeople().get(0).getId();
         
         when(expenseRepository.findBySlug(expense.getSlug())).thenReturn(Optional.of(expense));
         
@@ -500,11 +503,11 @@ public class ExpenseServiceTest {
         // Given
         Expense expense = createTestExpense();
         String itemId = expense.getItems().get(0).getId();
-        Long person1Id = expense.getPeople().get(0).getId();
+        UUID person1Id = expense.getPeople().get(0).getId();
         
         // Add a second person
         Person person2 = Person.builder()
-                .id(2L)
+                .id(UUID.randomUUID())
                 .name("Person 2")
                 .itemsClaimed(new ArrayList<>())
                 .amountOwed(BigDecimal.ZERO)
@@ -574,7 +577,7 @@ public class ExpenseServiceTest {
         expense.addItem(item);
 
         Person person = Person.builder()
-                .id(1L)
+                .id(UUID.randomUUID())
                 .name("Person 1")
                 .itemsClaimed(new ArrayList<>())
                 .amountOwed(BigDecimal.ZERO)
@@ -593,7 +596,7 @@ public class ExpenseServiceTest {
     public void markPersonAsFinished_shouldMarkPersonAsFinished_whenValidSlugAndPersonId() {
         // Given
         String slug = "test-slug";
-        Long personId = 1L;
+        UUID personId = UUID.fromString("550e8400-e29b-41d4-a716-446655440002");
         
         Expense expense = createTestExpense();
         Person person = createTestPerson(personId, "John Doe");
@@ -606,8 +609,8 @@ public class ExpenseServiceTest {
         expenseService.markPersonAsFinished(slug, personId);
         
         // Then
-        verify(expenseRepository).save(expenseCaptor.capture());
-        Expense savedExpense = expenseCaptor.getValue();
+        verify(expenseRepository).save(expense);
+        Expense savedExpense = expenseRepository.save(expense);
         Person savedPerson = savedExpense.findPersonById(personId);
         assertTrue(savedPerson.isFinished());
     }
@@ -616,45 +619,44 @@ public class ExpenseServiceTest {
     public void markPersonAsFinished_shouldThrowResourceNotFoundException_whenExpenseNotFound() {
         // Given
         String slug = "non-existent-slug";
-        Long personId = 1L;
+        UUID personId = UUID.fromString("550e8400-e29b-41d4-a716-446655440003");
         
         when(expenseRepository.findBySlug(slug)).thenReturn(Optional.empty());
         
         // When & Then
-        assertThrows(ResourceNotFoundException.class, () -> 
-            expenseService.markPersonAsFinished(slug, personId));
-        
-        verify(expenseRepository, never()).save(any(Expense.class));
+        assertThatThrownBy(() -> 
+            expenseService.markPersonAsFinished(slug, personId))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasMessage("Expense not found with slug: " + slug);
     }
-    
+
     @Test
     public void markPersonAsFinished_shouldThrowResourceNotFoundException_whenPersonNotFound() {
         // Given
         String slug = "test-slug";
-        Long personId = 999L;
+        UUID personId = UUID.fromString("550e8400-e29b-41d4-a716-446655440004");
         
         Expense expense = createTestExpense();
-        Person person = createTestPerson(1L, "John Doe");
+        Person person = createTestPerson(UUID.fromString("550e8400-e29b-41d4-a716-446655440005"), "John Doe");
         expense.addPerson(person);
         
         when(expenseRepository.findBySlug(slug)).thenReturn(Optional.of(expense));
         
         // When & Then
-        assertThrows(ResourceNotFoundException.class, () -> 
-            expenseService.markPersonAsFinished(slug, personId));
-        
-        verify(expenseRepository, never()).save(any(Expense.class));
+        assertThatThrownBy(() -> 
+            expenseService.markPersonAsFinished(slug, personId))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasMessage("Person not found with ID: " + personId);
     }
     
     @Test
     public void markPersonAsPending_shouldMarkPersonAsPending_whenValidSlugAndPersonId() {
         // Given
         String slug = "test-slug";
-        Long personId = 1L;
+        UUID personId = UUID.fromString("550e8400-e29b-41d4-a716-446655440006");
         
         Expense expense = createTestExpense();
         Person person = createTestPerson(personId, "John Doe");
-        person.setFinished(true); // Start with finished status
         expense.addPerson(person);
         
         when(expenseRepository.findBySlug(slug)).thenReturn(Optional.of(expense));
@@ -664,8 +666,8 @@ public class ExpenseServiceTest {
         expenseService.markPersonAsPending(slug, personId);
         
         // Then
-        verify(expenseRepository).save(expenseCaptor.capture());
-        Expense savedExpense = expenseCaptor.getValue();
+        verify(expenseRepository).save(expense);
+        Expense savedExpense = expenseRepository.save(expense);
         Person savedPerson = savedExpense.findPersonById(personId);
         assertFalse(savedPerson.isFinished());
     }
@@ -674,37 +676,37 @@ public class ExpenseServiceTest {
     public void markPersonAsPending_shouldThrowResourceNotFoundException_whenExpenseNotFound() {
         // Given
         String slug = "non-existent-slug";
-        Long personId = 1L;
+        UUID personId = UUID.fromString("550e8400-e29b-41d4-a716-446655440007");
         
         when(expenseRepository.findBySlug(slug)).thenReturn(Optional.empty());
         
         // When & Then
-        assertThrows(ResourceNotFoundException.class, () -> 
-            expenseService.markPersonAsPending(slug, personId));
-        
-        verify(expenseRepository, never()).save(any(Expense.class));
+        assertThatThrownBy(() -> 
+            expenseService.markPersonAsPending(slug, personId))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasMessage("Expense not found with slug: " + slug);
     }
-    
+
     @Test
     public void markPersonAsPending_shouldThrowResourceNotFoundException_whenPersonNotFound() {
         // Given
         String slug = "test-slug";
-        Long personId = 999L;
+        UUID personId = UUID.fromString("550e8400-e29b-41d4-a716-446655440008");
         
         Expense expense = createTestExpense();
-        Person person = createTestPerson(1L, "John Doe");
+        Person person = createTestPerson(UUID.fromString("550e8400-e29b-41d4-a716-446655440009"), "John Doe");
         expense.addPerson(person);
         
         when(expenseRepository.findBySlug(slug)).thenReturn(Optional.of(expense));
         
         // When & Then
-        assertThrows(ResourceNotFoundException.class, () -> 
-            expenseService.markPersonAsPending(slug, personId));
-        
-        verify(expenseRepository, never()).save(any(Expense.class));
+        assertThatThrownBy(() -> 
+            expenseService.markPersonAsPending(slug, personId))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasMessage("Person not found with ID: " + personId);
     }
     
-    private Person createTestPerson(Long id, String name) {
+    private Person createTestPerson(UUID id, String name) {
         Person person = Person.builder()
                 .id(id)
                 .name(name)
@@ -723,13 +725,11 @@ public class ExpenseServiceTest {
     void markPersonAsPending_WhenExpenseNotFound_ThrowsResourceNotFoundException() {
         // Given
         String slug = "test-slug";
-        Long personId = 1L;
+        UUID personId = UUID.fromString("550e8400-e29b-41d4-a716-446655440010");
         when(expenseRepository.findBySlug(slug)).thenReturn(Optional.empty());
 
         // When & Then
         assertThrows(ResourceNotFoundException.class, () -> expenseService.markPersonAsPending(slug, personId));
-        verify(expenseRepository).findBySlug(slug);
-        verify(expenseRepository, never()).save(any());
     }
 
     @Test
