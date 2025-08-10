@@ -35,7 +35,7 @@ public class Item {
     
     @ElementCollection
     @CollectionTable(name = "item_claimed_by", joinColumns = @JoinColumn(name = "item_id"))
-    @Column(name = "person_name")
+    @Column(name = "person_id")
     @Builder.Default
-    private List<String> claimedBy = new ArrayList<>();
+    private List<Long> claimedBy = new ArrayList<>();
 }

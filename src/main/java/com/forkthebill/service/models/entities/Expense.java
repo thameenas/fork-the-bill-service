@@ -8,9 +8,13 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+import com.forkthebill.service.exceptions.ResourceNotFoundException;
 
 @Entity
 @Table(name = "expenses")
@@ -31,18 +35,18 @@ public class Expense {
     
     @Column(nullable = false)
     private String payerName;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal subtotal;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal tax;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal tip;
     
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
-    
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal subtotal;
-    
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal tax;
-    
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal tip;
     
     @OneToMany(mappedBy = "expense", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
@@ -73,5 +77,92 @@ public class Expense {
     public void removePerson(Person person) {
         people.remove(person);
         person.setExpense(null);
+    }
+
+    public Person findPersonById(Long personId) {
+        return people.stream()
+                .filter(p -> p.getId().equals(personId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Person not found with ID: " + personId));
+    }
+
+    public Item findItemById(String itemId) {
+        return items.stream()
+                .filter(i -> i.getId().equals(itemId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Item not found with ID: " + itemId));
+    }
+
+    public void claimItem(String itemId, Long personId) {
+        Person person = findPersonById(personId);
+        Item item = findItemById(itemId);
+        
+        // Add claim
+        if (!item.getClaimedBy().contains(personId)) {
+            item.getClaimedBy().add(personId);
+        }
+        
+        if (!person.getItemsClaimed().contains(itemId)) {
+            person.getItemsClaimed().add(itemId);
+        }
+        
+        // Recalculate amounts
+        recalculateAmounts();
+    }
+
+    public void unclaimItem(String itemId, Long personId) {
+        Person person = findPersonById(personId);
+        Item item = findItemById(itemId);
+        
+        // Remove claim
+        item.getClaimedBy().remove(personId);
+        person.getItemsClaimed().remove(itemId);
+        
+        // Recalculate amounts
+        recalculateAmounts();
+    }
+
+    private BigDecimal calculatePersonSubtotal(Person person) {
+        BigDecimal personSubtotal = BigDecimal.ZERO;
+        
+        for (String itemId : person.getItemsClaimed()) {
+            Optional<Item> itemOpt = items.stream()
+                    .filter(i -> i.getId().equals(itemId))
+                    .findFirst();
+            
+            if (itemOpt.isPresent()) {
+                Item item = itemOpt.get();
+                int claimCount = item.getClaimedBy().size();
+                
+                if (claimCount > 0) {
+                    // Divide item price by number of people claiming it
+                    BigDecimal priceShare = item.getPrice()
+                            .divide(BigDecimal.valueOf(claimCount), 2, RoundingMode.HALF_UP);
+                    personSubtotal = personSubtotal.add(priceShare);
+                }
+            }
+        }
+        
+        return personSubtotal;
+    }
+
+    public void recalculateAmounts() {
+        for (Person person : people) {
+            // Calculate subtotal for this person
+            BigDecimal personSubtotal = calculatePersonSubtotal(person);
+            person.setSubtotal(personSubtotal);
+            
+            // Calculate tax and tip shares proportionally
+            if (subtotal.compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal ratio = personSubtotal.divide(subtotal, 10, RoundingMode.HALF_UP);
+                person.setTaxShare(tax.multiply(ratio).setScale(2, RoundingMode.HALF_UP));
+                person.setTipShare(tip.multiply(ratio).setScale(2, RoundingMode.HALF_UP));
+            } else {
+                person.setTaxShare(BigDecimal.ZERO);
+                person.setTipShare(BigDecimal.ZERO);
+            }
+            
+            person.setTotalOwed(personSubtotal.add(person.getTaxShare()).add(person.getTipShare()));
+        }
     }
 }

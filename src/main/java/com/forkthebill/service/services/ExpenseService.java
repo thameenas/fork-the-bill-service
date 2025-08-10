@@ -153,6 +153,7 @@ public class ExpenseService {
     
     private PersonResponse mapToPersonResponse(Person person) {
         return PersonResponse.builder()
+                .id(person.getId())
                 .name(person.getName())
                 .itemsClaimed(person.getItemsClaimed())
                 .amountOwed(person.getAmountOwed())
@@ -162,5 +163,59 @@ public class ExpenseService {
                 .totalOwed(person.getTotalOwed())
                 .isFinished(person.isFinished())
                 .build();
+    }
+
+    @Transactional
+    public ExpenseResponse claimItem(String slug, String itemId, Long personId) {
+        Expense expense = expenseRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Expense not found with slug: " + slug));
+        
+        // Validate item exists
+        Item item = expense.findItemById(itemId);
+        
+        // Validate person exists
+        Person person = expense.findPersonById(personId);
+        
+        // Check if already claimed
+        if (item.getClaimedBy().contains(personId)) {
+            throw new ValidationException("Item is already claimed by this person");
+        }
+        
+        // Check if person has already claimed this item
+        if (person.getItemsClaimed().contains(itemId)) {
+            throw new ValidationException("Person has already claimed this item");
+        }
+        
+        expense.claimItem(itemId, personId);
+        
+        Expense updatedExpense = expenseRepository.save(expense);
+        return mapToExpenseResponse(updatedExpense);
+    }
+
+    @Transactional
+    public ExpenseResponse unclaimItem(String slug, String itemId, Long personId) {
+        Expense expense = expenseRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Expense not found with slug: " + slug));
+        
+        // Validate item exists
+        Item item = expense.findItemById(itemId);
+        
+        // Validate person exists
+        Person person = expense.findPersonById(personId);
+        
+        // Check if not claimed
+        if (!item.getClaimedBy().contains(personId)) {
+            throw new ValidationException("Item is not claimed by this person");
+        }
+        
+        // Check if person hasn't claimed this item
+        if (!person.getItemsClaimed().contains(itemId)) {
+            throw new ValidationException("Person has not claimed this item");
+        }
+        
+        expense.unclaimItem(itemId, personId);
+        
+        Expense updatedExpense = expenseRepository.save(expense);
+        return mapToExpenseResponse(updatedExpense);
     }
 }

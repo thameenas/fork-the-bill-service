@@ -1,5 +1,6 @@
 package com.forkthebill.service.controllers;
 
+import com.forkthebill.service.models.dto.ClaimItemRequest;
 import com.forkthebill.service.models.dto.ExpenseRequest;
 import com.forkthebill.service.models.dto.ExpenseResponse;
 import com.forkthebill.service.services.ExpenseService;
@@ -7,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,6 +41,24 @@ public class ExpenseController {
             @PathVariable String slug,
             @Valid @RequestBody ExpenseRequest request) {
         ExpenseResponse response = expenseService.updateExpenseBySlug(slug, request);
+        return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/{slug}/items/{itemId}/claims")
+    public ResponseEntity<ExpenseResponse> claimItem(
+            @PathVariable String slug,
+            @PathVariable String itemId,
+            @Valid @RequestBody ClaimItemRequest request) {
+        ExpenseResponse response = expenseService.claimItem(slug, itemId, request.getPersonId());
+        return ResponseEntity.ok(response);
+    }
+    
+    @DeleteMapping("/{slug}/items/{itemId}/claims/{personId}")
+    public ResponseEntity<ExpenseResponse> unclaimItem(
+            @PathVariable String slug,
+            @PathVariable String itemId,
+            @PathVariable Long personId) {
+        ExpenseResponse response = expenseService.unclaimItem(slug, itemId, personId);
         return ResponseEntity.ok(response);
     }
 }

@@ -1,8 +1,10 @@
 package com.forkthebill.service.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.forkthebill.service.exceptions.GlobalExceptionHandler;
 import com.forkthebill.service.exceptions.ResourceNotFoundException;
 import com.forkthebill.service.exceptions.ValidationException;
+import com.forkthebill.service.models.dto.ClaimItemRequest;
 import com.forkthebill.service.models.dto.ExpenseRequest;
 import com.forkthebill.service.models.dto.ExpenseResponse;
 import com.forkthebill.service.models.dto.ItemRequest;
@@ -27,6 +29,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -45,7 +48,9 @@ public class ExpenseControllerTest {
 
     @BeforeEach
     public void setup() {
-        mockMvc = MockMvcBuilders.standaloneSetup(expenseController).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(expenseController)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
         objectMapper = new ObjectMapper();
         objectMapper.findAndRegisterModules(); // For LocalDateTime serialization
     }
@@ -188,6 +193,132 @@ public class ExpenseControllerTest {
         mockMvc.perform(put("/expense/{slug}", slug)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+    
+    @Test
+    public void claimItem_shouldReturnUpdatedExpense_whenClaimSuccessful() throws Exception {
+        // Given
+        String slug = "test-slug";
+        String itemId = "item-1";
+        ClaimItemRequest request = ClaimItemRequest.builder()
+                .personId(1L)
+                .build();
+        
+        ExpenseResponse response = ExpenseResponse.builder()
+                .id("1")
+                .slug(slug)
+                .createdAt(LocalDateTime.now())
+                .payerName("John Doe")
+                .totalAmount(new BigDecimal("100.00"))
+                .subtotal(new BigDecimal("80.00"))
+                .tax(new BigDecimal("10.00"))
+                .tip(new BigDecimal("10.00"))
+                .build();
+        
+        when(expenseService.claimItem(eq(slug), eq(itemId), eq(1L))).thenReturn(response);
+        
+        // When & Then
+        mockMvc.perform(post("/expense/{slug}/items/{itemId}/claims", slug, itemId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("1"))
+                .andExpect(jsonPath("$.slug").value(slug));
+    }
+    
+    @Test
+    public void claimItem_shouldReturn404_whenExpenseNotFound() throws Exception {
+        // Given
+        String slug = "non-existent-slug";
+        String itemId = "item-1";
+        ClaimItemRequest request = ClaimItemRequest.builder()
+                .personId(1L)
+                .build();
+        
+        when(expenseService.claimItem(eq(slug), eq(itemId), eq(1L)))
+                .thenThrow(new ResourceNotFoundException("Expense not found with slug: " + slug));
+        
+        // When & Then
+        mockMvc.perform(post("/expense/{slug}/items/{itemId}/claims", slug, itemId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound());
+    }
+    
+    @Test
+    public void claimItem_shouldReturn400_whenValidationFails() throws Exception {
+        // Given
+        String slug = "test-slug";
+        String itemId = "item-1";
+        ClaimItemRequest request = ClaimItemRequest.builder()
+                .personId(1L)
+                .build();
+        
+        when(expenseService.claimItem(eq(slug), eq(itemId), eq(1L)))
+                .thenThrow(new ValidationException("Item is already claimed by this person"));
+        
+        // When & Then
+        mockMvc.perform(post("/expense/{slug}/items/{itemId}/claims", slug, itemId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+    
+    @Test
+    public void unclaimItem_shouldReturnUpdatedExpense_whenUnclaimSuccessful() throws Exception {
+        // Given
+        String slug = "test-slug";
+        String itemId = "item-1";
+        Long personId = 1L;
+        
+        ExpenseResponse response = ExpenseResponse.builder()
+                .id("1")
+                .slug(slug)
+                .createdAt(LocalDateTime.now())
+                .payerName("John Doe")
+                .totalAmount(new BigDecimal("100.00"))
+                .subtotal(new BigDecimal("80.00"))
+                .tax(new BigDecimal("10.00"))
+                .tip(new BigDecimal("10.00"))
+                .build();
+        
+        when(expenseService.unclaimItem(eq(slug), eq(itemId), eq(personId))).thenReturn(response);
+        
+        // When & Then
+        mockMvc.perform(delete("/expense/{slug}/items/{itemId}/claims/{personId}", slug, itemId, personId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("1"))
+                .andExpect(jsonPath("$.slug").value(slug));
+    }
+    
+    @Test
+    public void unclaimItem_shouldReturn404_whenExpenseNotFound() throws Exception {
+        // Given
+        String slug = "non-existent-slug";
+        String itemId = "item-1";
+        Long personId = 1L;
+        
+        when(expenseService.unclaimItem(eq(slug), eq(itemId), eq(personId)))
+                .thenThrow(new ResourceNotFoundException("Expense not found with slug: " + slug));
+        
+        // When & Then
+        mockMvc.perform(delete("/expense/{slug}/items/{itemId}/claims/{personId}", slug, itemId, personId))
+                .andExpect(status().isNotFound());
+    }
+    
+    @Test
+    public void unclaimItem_shouldReturn400_whenValidationFails() throws Exception {
+        // Given
+        String slug = "test-slug";
+        String itemId = "item-1";
+        Long personId = 1L;
+        
+        when(expenseService.unclaimItem(eq(slug), eq(itemId), eq(personId)))
+                .thenThrow(new ValidationException("Item is not claimed by this person"));
+        
+        // When & Then
+        mockMvc.perform(delete("/expense/{slug}/items/{itemId}/claims/{personId}", slug, itemId, personId))
                 .andExpect(status().isBadRequest());
     }
     

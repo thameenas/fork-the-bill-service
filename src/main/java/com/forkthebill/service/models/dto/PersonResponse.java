@@ -14,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class PersonResponse {
+    private Long id;
     private String name;
     
     @Builder.Default

@@ -19,5 +19,5 @@ public class ItemResponse {
     private BigDecimal price;
     
     @Builder.Default
-    private List<String> claimedBy = new ArrayList<>();
+    private List<Long> claimedBy = new ArrayList<>();
 }

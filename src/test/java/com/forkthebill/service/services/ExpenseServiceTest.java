@@ -5,8 +5,11 @@ import com.forkthebill.service.exceptions.ValidationException;
 import com.forkthebill.service.models.dto.ExpenseRequest;
 import com.forkthebill.service.models.dto.ExpenseResponse;
 import com.forkthebill.service.models.dto.ItemRequest;
+import com.forkthebill.service.models.dto.ItemResponse;
+import com.forkthebill.service.models.dto.PersonResponse;
 import com.forkthebill.service.models.entities.Expense;
 import com.forkthebill.service.models.entities.Item;
+import com.forkthebill.service.models.entities.Person;
 import com.forkthebill.service.repositories.ExpenseRepository;
 import com.forkthebill.service.utils.SlugGenerator;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -28,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ExpenseServiceTest {
@@ -41,6 +46,7 @@ public class ExpenseServiceTest {
     @Captor
     private ArgumentCaptor<Expense> expenseCaptor;
 
+    @InjectMocks
     private ExpenseService expenseService;
 
     @BeforeEach
@@ -248,25 +254,282 @@ public class ExpenseServiceTest {
                 ))
                 .build();
         
-        Expense existingExpense = Expense.builder()
-                .id("1")
-                .slug(slug)
-                .createdAt(LocalDateTime.now())
-                .payerName("John Doe")
-                .totalAmount(new BigDecimal("100.00"))
-                .subtotal(new BigDecimal("80.00"))
-                .tax(new BigDecimal("10.00"))
-                .tip(new BigDecimal("10.00"))
-                .items(new ArrayList<>())
-                .people(new ArrayList<>())
-                .build();
-        
-        when(expenseRepository.findBySlug(slug)).thenReturn(Optional.of(existingExpense));
-        
         // When/Then
         assertThatThrownBy(() -> expenseService.updateExpenseBySlug(slug, updateRequest))
                 .isInstanceOf(ValidationException.class)
                 .hasMessageContaining("Total amount must equal subtotal + tax + tip");
+    }
+    
+    @Test
+    public void claimItem_ShouldAddPersonToItemClaimedByList() {
+        // Given
+        Expense expense = createTestExpense();
+        String itemId = expense.getItems().get(0).getId();
+        Long personId = expense.getPeople().get(0).getId();
+        
+        when(expenseRepository.findBySlug(expense.getSlug())).thenReturn(Optional.of(expense));
+        when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
+        
+        // When
+        ExpenseResponse response = expenseService.claimItem(expense.getSlug(), itemId, personId);
+        
+        // Then
+        ItemResponse claimedItem = response.getItems().stream()
+                .filter(item -> item.getId().equals(itemId))
+                .findFirst()
+                .orElseThrow();
+        assertTrue(claimedItem.getClaimedBy().contains(personId));
+    }
+
+    @Test
+    public void claimItem_ShouldAddItemToPersonItemsClaimedList() {
+        // Given
+        Expense expense = createTestExpense();
+        String itemId = expense.getItems().get(0).getId();
+        Long personId = expense.getPeople().get(0).getId();
+        
+        when(expenseRepository.findBySlug(expense.getSlug())).thenReturn(Optional.of(expense));
+        when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
+        
+        // When
+        ExpenseResponse response = expenseService.claimItem(expense.getSlug(), itemId, personId);
+        
+        // Then
+        PersonResponse claimingPerson = response.getPeople().stream()
+                .filter(person -> person.getId().equals(personId))
+                .findFirst()
+                .orElseThrow();
+        assertTrue(claimingPerson.getItemsClaimed().contains(itemId));
+    }
+
+    @Test
+    public void claimItem_ShouldRecalculateAmounts() {
+        // Given
+        Expense expense = createTestExpense();
+        String itemId = expense.getItems().get(0).getId();
+        Long personId = expense.getPeople().get(0).getId();
+        
+        when(expenseRepository.findBySlug(expense.getSlug())).thenReturn(Optional.of(expense));
+        when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
+        
+        // When
+        ExpenseResponse response = expenseService.claimItem(expense.getSlug(), itemId, personId);
+        
+        // Then
+        PersonResponse claimingPerson = response.getPeople().stream()
+                .filter(person -> person.getId().equals(personId))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(new BigDecimal("80.00"), claimingPerson.getSubtotal());
+        assertEquals(new BigDecimal("100.00"), claimingPerson.getTotalOwed());
+        assertTrue(expense.getItems().get(0).getClaimedBy().contains(claimingPerson.getId()));
+    }
+
+    @Test
+    public void unclaimItem_ShouldRemovePersonFromItemClaimedByList() {
+        // Given
+        Expense expense = createTestExpense();
+        String itemId = expense.getItems().get(0).getId();
+        Long personId = expense.getPeople().get(0).getId();
+        
+        // First claim the item
+        when(expenseRepository.findBySlug(expense.getSlug())).thenReturn(Optional.of(expense));
+        when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
+        expenseService.claimItem(expense.getSlug(), itemId, personId);
+        
+        // When
+        ExpenseResponse response = expenseService.unclaimItem(expense.getSlug(), itemId, personId);
+        
+        // Then
+        ItemResponse unclaimedItem = response.getItems().stream()
+                .filter(item -> item.getId().equals(itemId))
+                .findFirst()
+                .orElseThrow();
+        assertFalse(unclaimedItem.getClaimedBy().contains(personId));
+    }
+
+    @Test
+    public void unclaimItem_ShouldRemoveItemFromPersonItemsClaimedList() {
+        // Given
+        Expense expense = createTestExpense();
+        String itemId = expense.getItems().get(0).getId();
+        Long personId = expense.getPeople().get(0).getId();
+        
+        // First claim the item
+        when(expenseRepository.findBySlug(expense.getSlug())).thenReturn(Optional.of(expense));
+        when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
+        expenseService.claimItem(expense.getSlug(), itemId, personId);
+        
+        // When
+        ExpenseResponse response = expenseService.unclaimItem(expense.getSlug(), itemId, personId);
+        
+        // Then
+        PersonResponse unclaimingPerson = response.getPeople().stream()
+                .filter(person -> person.getId().equals(personId))
+                .findFirst()
+                .orElseThrow();
+        assertFalse(unclaimingPerson.getItemsClaimed().contains(itemId));
+    }
+
+    @Test
+    public void unclaimItem_ShouldRecalculateAmounts() {
+        // Given
+        Expense expense = createTestExpense();
+        String itemId = expense.getItems().get(0).getId();
+        Long personId = expense.getPeople().get(0).getId();
+        
+        // First claim the item
+        when(expenseRepository.findBySlug(expense.getSlug())).thenReturn(Optional.of(expense));
+        when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
+        expenseService.claimItem(expense.getSlug(), itemId, personId);
+        
+        // When
+        ExpenseResponse response = expenseService.unclaimItem(expense.getSlug(), itemId, personId);
+        
+        // Then
+        PersonResponse unclaimingPerson = response.getPeople().stream()
+                .filter(person -> person.getId().equals(personId))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(BigDecimal.ZERO, unclaimingPerson.getSubtotal());
+    }
+
+    @Test
+    public void claimItem_ShouldThrowException_WhenExpenseNotFound() {
+        // Given
+        String nonExistentSlug = "non-existent-slug";
+        String itemId = "item1";
+        Long personId = 1L;
+        
+        when(expenseRepository.findBySlug(nonExistentSlug)).thenReturn(Optional.empty());
+        
+        // When & Then
+        assertThrows(ResourceNotFoundException.class, () -> {
+            expenseService.claimItem(nonExistentSlug, itemId, personId);
+        });
+    }
+
+    @Test
+    public void unclaimItem_ShouldThrowException_WhenExpenseNotFound() {
+        // Given
+        String nonExistentSlug = "non-existent-slug";
+        String itemId = "item1";
+        Long personId = 1L;
+        
+        when(expenseRepository.findBySlug(nonExistentSlug)).thenReturn(Optional.empty());
+        
+        // When & Then
+        assertThrows(ResourceNotFoundException.class, () -> {
+            expenseService.unclaimItem(nonExistentSlug, itemId, personId);
+        });
+    }
+
+    @Test
+    public void claimItem_ShouldThrowException_WhenItemAlreadyClaimed() {
+        // Given
+        Expense expense = createTestExpense();
+        String itemId = expense.getItems().get(0).getId();
+        Long personId = expense.getPeople().get(0).getId();
+        
+        // Pre-claim the item
+        expense.getItems().get(0).getClaimedBy().add(personId);
+        expense.getPeople().get(0).getItemsClaimed().add(itemId);
+        
+        when(expenseRepository.findBySlug(expense.getSlug())).thenReturn(Optional.of(expense));
+        
+        // When & Then
+        assertThrows(ValidationException.class, () -> {
+            expenseService.claimItem(expense.getSlug(), itemId, personId);
+        });
+    }
+
+    @Test
+    public void claimItem_ShouldThrowException_WhenPersonAlreadyClaimedItem() {
+        // Given
+        Expense expense = createTestExpense();
+        String itemId = expense.getItems().get(0).getId();
+        Long personId = expense.getPeople().get(0).getId();
+        
+        // Pre-claim the item
+        expense.getItems().get(0).getClaimedBy().add(personId);
+        expense.getPeople().get(0).getItemsClaimed().add(itemId);
+        
+        when(expenseRepository.findBySlug(expense.getSlug())).thenReturn(Optional.of(expense));
+        
+        // When & Then
+        assertThrows(ValidationException.class, () -> {
+            expenseService.claimItem(expense.getSlug(), itemId, personId);
+        });
+    }
+
+    @Test
+    public void unclaimItem_ShouldThrowException_WhenItemNotClaimed() {
+        // Given
+        Expense expense = createTestExpense();
+        String itemId = expense.getItems().get(0).getId();
+        Long personId = expense.getPeople().get(0).getId();
+        
+        when(expenseRepository.findBySlug(expense.getSlug())).thenReturn(Optional.of(expense));
+        
+        // When & Then
+        assertThrows(ValidationException.class, () -> {
+            expenseService.unclaimItem(expense.getSlug(), itemId, personId);
+        });
+    }
+
+    @Test
+    public void unclaimItem_ShouldThrowException_WhenPersonNotClaimedItem() {
+        // Given
+        Expense expense = createTestExpense();
+        String itemId = expense.getItems().get(0).getId();
+        Long personId = expense.getPeople().get(0).getId();
+        
+        when(expenseRepository.findBySlug(expense.getSlug())).thenReturn(Optional.of(expense));
+        
+        // When & Then
+        assertThrows(ValidationException.class, () -> {
+            expenseService.unclaimItem(expense.getSlug(), itemId, personId);
+        });
+    }
+
+    @Test
+    public void claimItem_ShouldHandleMultiplePeopleClaimingSameItem() {
+        // Given
+        Expense expense = createTestExpense();
+        String itemId = expense.getItems().get(0).getId();
+        Long person1Id = expense.getPeople().get(0).getId();
+        
+        // Add a second person
+        Person person2 = Person.builder()
+                .id(2L)
+                .name("Person 2")
+                .itemsClaimed(new ArrayList<>())
+                .amountOwed(BigDecimal.ZERO)
+                .subtotal(BigDecimal.ZERO)
+                .taxShare(BigDecimal.ZERO)
+                .tipShare(BigDecimal.ZERO)
+                .totalOwed(BigDecimal.ZERO)
+                .isFinished(false)
+                .build();
+        expense.addPerson(person2);
+        
+        when(expenseRepository.findBySlug(expense.getSlug())).thenReturn(Optional.of(expense));
+        when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
+        
+        // When - both people claim the same item
+        expenseService.claimItem(expense.getSlug(), itemId, person1Id);
+        expenseService.claimItem(expense.getSlug(), itemId, person2.getId());
+        
+        // Then - both should be in the claimedBy list
+        ItemResponse claimedItem = expenseService.getExpenseBySlug(expense.getSlug())
+                .getItems().stream()
+                .filter(item -> item.getId().equals(itemId))
+                .findFirst()
+                .orElseThrow();
+        
+        assertTrue(claimedItem.getClaimedBy().contains(person1Id));
+        assertTrue(claimedItem.getClaimedBy().contains(person2.getId()));
+        assertEquals(2, claimedItem.getClaimedBy().size());
     }
     
     private ExpenseRequest createValidExpenseRequest() {
@@ -283,5 +546,43 @@ public class ExpenseServiceTest {
                                 .build()
                 ))
                 .build();
+    }
+
+    private Expense createTestExpense() {
+        Expense expense = Expense.builder()
+                .id("1")
+                .slug("test-expense")
+                .createdAt(LocalDateTime.now())
+                .payerName("John Doe")
+                .subtotal(new BigDecimal("80.00"))
+                .tax(new BigDecimal("10.00"))
+                .tip(new BigDecimal("10.00"))
+                .totalAmount(new BigDecimal("100.00"))
+                .items(new ArrayList<>())
+                .people(new ArrayList<>())
+                .build();
+
+        Item item = Item.builder()
+                .id("item1")
+                .name("Item 1")
+                .price(new BigDecimal("80.00"))
+                .claimedBy(new ArrayList<>())
+                .build();
+        expense.addItem(item);
+
+        Person person = Person.builder()
+                .id(1L)
+                .name("Person 1")
+                .itemsClaimed(new ArrayList<>())
+                .amountOwed(BigDecimal.ZERO)
+                .subtotal(BigDecimal.ZERO)
+                .taxShare(BigDecimal.ZERO)
+                .tipShare(BigDecimal.ZERO)
+                .totalOwed(BigDecimal.ZERO)
+                .isFinished(false)
+                .build();
+        expense.addPerson(person);
+
+        return expense;
     }
 }
