@@ -24,6 +24,9 @@ dependencies {
     // PostgreSQL driver
     implementation 'org.postgresql:postgresql'
     
+    // H2 database for testing
+    testImplementation 'com.h2database:h2'
+    
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
