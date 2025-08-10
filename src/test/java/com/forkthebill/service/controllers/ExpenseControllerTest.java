@@ -8,6 +8,8 @@ import com.forkthebill.service.models.dto.ClaimItemRequest;
 import com.forkthebill.service.models.dto.ExpenseRequest;
 import com.forkthebill.service.models.dto.ExpenseResponse;
 import com.forkthebill.service.models.dto.ItemRequest;
+import com.forkthebill.service.models.dto.PersonRequest;
+import com.forkthebill.service.models.dto.PersonResponse;
 import com.forkthebill.service.services.ExpenseService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,14 +17,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -404,6 +412,82 @@ public class ExpenseControllerTest {
         // When & Then
         mockMvc.perform(put("/expense/{slug}/people/{personId}/pending", slug, personId))
                 .andExpect(status().isNotFound());
+    }
+    
+    @Test
+    void markPersonAsPending_ShouldCallServiceAndReturnOk() {
+        // Given
+        String slug = "test-slug";
+        Long personId = 1L;
+
+        // When
+        ResponseEntity<Void> response = expenseController.markPersonAsPending(slug, personId);
+
+        // Then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(expenseService).markPersonAsPending(slug, personId);
+    }
+
+    @Test
+    void addPersonToExpense_ShouldCallServiceAndReturnOk() {
+        // Given
+        String slug = "test-slug";
+        PersonRequest personRequest = PersonRequest.builder()
+                .name("John Doe")
+                .amountOwed(new BigDecimal("15.00"))
+                .build();
+
+        ExpenseResponse expectedResponse = ExpenseResponse.builder()
+                .slug(slug)
+                .people(Arrays.asList(
+                        PersonResponse.builder()
+                                .name("John Doe")
+                                .amountOwed(new BigDecimal("15.00"))
+                                .build()
+                ))
+                .build();
+
+        when(expenseService.addPersonToExpense(slug, personRequest)).thenReturn(expectedResponse);
+
+        // When
+        ResponseEntity<ExpenseResponse> response = expenseController.addPersonToExpense(slug, personRequest);
+
+        // Then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(expectedResponse, response.getBody());
+        verify(expenseService).addPersonToExpense(slug, personRequest);
+    }
+
+    @Test
+    void addPersonToExpense_WithValidRequest_ShouldReturnCorrectResponse() {
+        // Given
+        String slug = "test-slug";
+        PersonRequest personRequest = PersonRequest.builder()
+                .name("Jane Smith")
+                .isFinished(true)
+                .build();
+
+        ExpenseResponse expectedResponse = ExpenseResponse.builder()
+                .slug(slug)
+                .people(Arrays.asList(
+                        PersonResponse.builder()
+                                .name("Jane Smith")
+                                .isFinished(true)
+                                .build()
+                ))
+                .build();
+
+        when(expenseService.addPersonToExpense(slug, personRequest)).thenReturn(expectedResponse);
+
+        // When
+        ResponseEntity<ExpenseResponse> response = expenseController.addPersonToExpense(slug, personRequest);
+
+        // Then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("Jane Smith", response.getBody().getPeople().get(0).getName());
+        assertTrue(response.getBody().getPeople().get(0).isFinished());
+        verify(expenseService).addPersonToExpense(slug, personRequest);
     }
     
     private ExpenseRequest createValidExpenseRequest() {

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.forkthebill.service.models.dto.PersonRequest;
 
 @RestController
 @RequestMapping("/expense")
@@ -76,5 +77,13 @@ public class ExpenseController {
             @PathVariable Long personId) {
         expenseService.markPersonAsPending(slug, personId);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{slug}/people")
+    public ResponseEntity<ExpenseResponse> addPersonToExpense(
+            @PathVariable String slug,
+            @Valid @RequestBody PersonRequest personRequest) {
+        ExpenseResponse response = expenseService.addPersonToExpense(slug, personRequest);
+        return ResponseEntity.ok(response);
     }
 }

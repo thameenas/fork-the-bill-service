@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
+import com.forkthebill.service.models.dto.PersonRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -239,5 +240,27 @@ public class ExpenseService {
         person.setFinished(false);
         
         expenseRepository.save(expense);
+    }
+
+    @Transactional
+    public ExpenseResponse addPersonToExpense(String slug, PersonRequest personRequest) {
+        Expense expense = expenseRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Expense not found with slug: " + slug));
+        
+        Person person = Person.builder()
+                .name(personRequest.getName())
+                .amountOwed(personRequest.getAmountOwed() != null ? personRequest.getAmountOwed() : BigDecimal.ZERO)
+                .subtotal(personRequest.getSubtotal() != null ? personRequest.getSubtotal() : BigDecimal.ZERO)
+                .taxShare(personRequest.getTaxShare() != null ? personRequest.getTaxShare() : BigDecimal.ZERO)
+                .tipShare(personRequest.getTipShare() != null ? personRequest.getTipShare() : BigDecimal.ZERO)
+                .totalOwed(personRequest.getTotalOwed() != null ? personRequest.getTotalOwed() : BigDecimal.ZERO)
+                .isFinished(personRequest.isFinished())
+                .itemsClaimed(new ArrayList<>())
+                .build();
+        
+        expense.addPerson(person);
+        
+        Expense savedExpense = expenseRepository.save(expense);
+        return mapToExpenseResponse(savedExpense);
     }
 }

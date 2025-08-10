@@ -34,6 +34,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.never;
+import com.forkthebill.service.models.dto.PersonRequest;
+import java.util.Arrays;
 
 @ExtendWith(MockitoExtension.class)
 public class ExpenseServiceTest {
@@ -715,5 +717,171 @@ public class ExpenseServiceTest {
                 .itemsClaimed(new ArrayList<>())
                 .build();
         return person;
+    }
+
+    @Test
+    void markPersonAsPending_WhenExpenseNotFound_ThrowsResourceNotFoundException() {
+        // Given
+        String slug = "test-slug";
+        Long personId = 1L;
+        when(expenseRepository.findBySlug(slug)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(ResourceNotFoundException.class, () -> expenseService.markPersonAsPending(slug, personId));
+        verify(expenseRepository).findBySlug(slug);
+        verify(expenseRepository, never()).save(any());
+    }
+
+    @Test
+    void addPersonToExpense_WhenExpenseExists_AddsPersonSuccessfully() {
+        // Given
+        String slug = "test-slug";
+        PersonRequest personRequest = PersonRequest.builder()
+                .name("John Doe")
+                .amountOwed(new BigDecimal("15.00"))
+                .isFinished(false)
+                .build();
+
+        Expense expense = Expense.builder()
+                .id("expense-1")
+                .slug(slug)
+                .payerName("Jane")
+                .totalAmount(new BigDecimal("50.00"))
+                .subtotal(new BigDecimal("40.00"))
+                .tax(new BigDecimal("5.00"))
+                .tip(new BigDecimal("5.00"))
+                .createdAt(LocalDateTime.now())
+                .items(new ArrayList<>())
+                .people(new ArrayList<>())
+                .build();
+
+        when(expenseRepository.findBySlug(slug)).thenReturn(Optional.of(expense));
+        when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
+
+        // When
+        ExpenseResponse result = expenseService.addPersonToExpense(slug, personRequest);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(slug, result.getSlug());
+        assertEquals(1, result.getPeople().size());
+        assertEquals("John Doe", result.getPeople().get(0).getName());
+        assertEquals(new BigDecimal("15.00"), result.getPeople().get(0).getAmountOwed());
+        assertFalse(result.getPeople().get(0).isFinished());
+
+        verify(expenseRepository).findBySlug(slug);
+        verify(expenseRepository).save(expense);
+    }
+
+    @Test
+    void addPersonToExpense_WhenExpenseNotFound_ThrowsResourceNotFoundException() {
+        // Given
+        String slug = "non-existent-slug";
+        PersonRequest personRequest = PersonRequest.builder()
+                .name("John Doe")
+                .build();
+
+        when(expenseRepository.findBySlug(slug)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(ResourceNotFoundException.class, () -> expenseService.addPersonToExpense(slug, personRequest));
+        verify(expenseRepository).findBySlug(slug);
+        verify(expenseRepository, never()).save(any());
+    }
+
+    @Test
+    void addPersonToExpense_WithNullOptionalFields_SetsDefaultValues() {
+        // Given
+        String slug = "test-slug";
+        PersonRequest personRequest = PersonRequest.builder()
+                .name("John Doe")
+                .build(); // All optional fields are null
+
+        Expense expense = Expense.builder()
+                .id("expense-1")
+                .slug(slug)
+                .payerName("Jane")
+                .totalAmount(new BigDecimal("50.00"))
+                .subtotal(new BigDecimal("40.00"))
+                .tax(new BigDecimal("5.00"))
+                .tip(new BigDecimal("5.00"))
+                .createdAt(LocalDateTime.now())
+                .items(new ArrayList<>())
+                .people(new ArrayList<>())
+                .build();
+
+        when(expenseRepository.findBySlug(slug)).thenReturn(Optional.of(expense));
+        when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
+
+        // When
+        ExpenseResponse result = expenseService.addPersonToExpense(slug, personRequest);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.getPeople().size());
+        PersonResponse addedPerson = result.getPeople().get(0);
+        assertEquals("John Doe", addedPerson.getName());
+        assertEquals(BigDecimal.ZERO, addedPerson.getAmountOwed());
+        assertEquals(BigDecimal.ZERO, addedPerson.getSubtotal());
+        assertEquals(BigDecimal.ZERO, addedPerson.getTaxShare());
+        assertEquals(BigDecimal.ZERO, addedPerson.getTipShare());
+        assertEquals(BigDecimal.ZERO, addedPerson.getTotalOwed());
+        assertFalse(addedPerson.isFinished());
+        assertTrue(addedPerson.getItemsClaimed().isEmpty());
+
+        verify(expenseRepository).findBySlug(slug);
+        verify(expenseRepository).save(expense);
+    }
+
+    @Test
+    void addPersonToExpense_WithAllFieldsProvided_SetsAllValuesCorrectly() {
+        // Given
+        String slug = "test-slug";
+        PersonRequest personRequest = PersonRequest.builder()
+                .name("John Doe")
+                .amountOwed(new BigDecimal("20.00"))
+                .subtotal(new BigDecimal("15.00"))
+                .taxShare(new BigDecimal("2.00"))
+                .tipShare(new BigDecimal("3.00"))
+                .totalOwed(new BigDecimal("20.00"))
+                .isFinished(true)
+                .itemsClaimed(Arrays.asList("item-1", "item-2"))
+                .build();
+
+        Expense expense = Expense.builder()
+                .id("expense-1")
+                .slug(slug)
+                .payerName("Jane")
+                .totalAmount(new BigDecimal("50.00"))
+                .subtotal(new BigDecimal("40.00"))
+                .tax(new BigDecimal("5.00"))
+                .tip(new BigDecimal("5.00"))
+                .createdAt(LocalDateTime.now())
+                .items(new ArrayList<>())
+                .people(new ArrayList<>())
+                .build();
+
+        when(expenseRepository.findBySlug(slug)).thenReturn(Optional.of(expense));
+        when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
+
+        // When
+        ExpenseResponse result = expenseService.addPersonToExpense(slug, personRequest);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.getPeople().size());
+        PersonResponse addedPerson = result.getPeople().get(0);
+        assertEquals("John Doe", addedPerson.getName());
+        assertEquals(new BigDecimal("20.00"), addedPerson.getAmountOwed());
+        assertEquals(new BigDecimal("15.00"), addedPerson.getSubtotal());
+        assertEquals(new BigDecimal("2.00"), addedPerson.getTaxShare());
+        assertEquals(new BigDecimal("3.00"), addedPerson.getTipShare());
+        assertEquals(new BigDecimal("20.00"), addedPerson.getTotalOwed());
+        assertTrue(addedPerson.isFinished());
+        // Note: itemsClaimed will be empty because we create a new Person with empty list
+        assertTrue(addedPerson.getItemsClaimed().isEmpty());
+
+        verify(expenseRepository).findBySlug(slug);
+        verify(expenseRepository).save(expense);
     }
 }
