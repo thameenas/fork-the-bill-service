@@ -61,4 +61,20 @@ public class ExpenseController {
         ExpenseResponse response = expenseService.unclaimItem(slug, itemId, personId);
         return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/{slug}/people/{personId}/finish")
+    public ResponseEntity<Void> markPersonAsFinished(
+            @PathVariable String slug,
+            @PathVariable Long personId) {
+        expenseService.markPersonAsFinished(slug, personId);
+        return ResponseEntity.ok().build();
+    }
+    
+    @PutMapping("/{slug}/people/{personId}/pending")
+    public ResponseEntity<Void> markPersonAsPending(
+            @PathVariable String slug,
+            @PathVariable Long personId) {
+        expenseService.markPersonAsPending(slug, personId);
+        return ResponseEntity.ok().build();
+    }
 }

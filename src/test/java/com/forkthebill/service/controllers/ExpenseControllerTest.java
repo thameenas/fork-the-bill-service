@@ -26,6 +26,8 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -320,6 +322,88 @@ public class ExpenseControllerTest {
         // When & Then
         mockMvc.perform(delete("/expense/{slug}/items/{itemId}/claims/{personId}", slug, itemId, personId))
                 .andExpect(status().isBadRequest());
+    }
+    
+    @Test
+    public void markPersonAsFinished_shouldReturn200_whenSuccessful() throws Exception {
+        // Given
+        String slug = "test-slug";
+        Long personId = 1L;
+        
+        // When & Then
+        mockMvc.perform(put("/expense/{slug}/people/{personId}/finish", slug, personId))
+                .andExpect(status().isOk());
+        
+        verify(expenseService).markPersonAsFinished(slug, personId);
+    }
+    
+    @Test
+    public void markPersonAsFinished_shouldReturn404_whenExpenseNotFound() throws Exception {
+        // Given
+        String slug = "non-existent-slug";
+        Long personId = 1L;
+        
+        doThrow(new ResourceNotFoundException("Expense not found with slug: " + slug))
+                .when(expenseService).markPersonAsFinished(slug, personId);
+        
+        // When & Then
+        mockMvc.perform(put("/expense/{slug}/people/{personId}/finish", slug, personId))
+                .andExpect(status().isNotFound());
+    }
+    
+    @Test
+    public void markPersonAsFinished_shouldReturn404_whenPersonNotFound() throws Exception {
+        // Given
+        String slug = "test-slug";
+        Long personId = 999L;
+        
+        doThrow(new ResourceNotFoundException("Person not found with ID: " + personId))
+                .when(expenseService).markPersonAsFinished(slug, personId);
+        
+        // When & Then
+        mockMvc.perform(put("/expense/{slug}/people/{personId}/finish", slug, personId))
+                .andExpect(status().isNotFound());
+    }
+    
+    @Test
+    public void markPersonAsPending_shouldReturn200_whenSuccessful() throws Exception {
+        // Given
+        String slug = "test-slug";
+        Long personId = 1L;
+        
+        // When & Then
+        mockMvc.perform(put("/expense/{slug}/people/{personId}/pending", slug, personId))
+                .andExpect(status().isOk());
+        
+        verify(expenseService).markPersonAsPending(slug, personId);
+    }
+    
+    @Test
+    public void markPersonAsPending_shouldReturn404_whenExpenseNotFound() throws Exception {
+        // Given
+        String slug = "non-existent-slug";
+        Long personId = 1L;
+        
+        doThrow(new ResourceNotFoundException("Expense not found with slug: " + slug))
+                .when(expenseService).markPersonAsPending(slug, personId);
+        
+        // When & Then
+        mockMvc.perform(put("/expense/{slug}/people/{personId}/pending", slug, personId))
+                .andExpect(status().isNotFound());
+    }
+    
+    @Test
+    public void markPersonAsPending_shouldReturn404_whenPersonNotFound() throws Exception {
+        // Given
+        String slug = "test-slug";
+        Long personId = 999L;
+        
+        doThrow(new ResourceNotFoundException("Person not found with ID: " + personId))
+                .when(expenseService).markPersonAsPending(slug, personId);
+        
+        // When & Then
+        mockMvc.perform(put("/expense/{slug}/people/{personId}/pending", slug, personId))
+                .andExpect(status().isNotFound());
     }
     
     private ExpenseRequest createValidExpenseRequest() {

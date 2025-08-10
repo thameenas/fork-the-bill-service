@@ -218,4 +218,26 @@ public class ExpenseService {
         Expense updatedExpense = expenseRepository.save(expense);
         return mapToExpenseResponse(updatedExpense);
     }
+
+    @Transactional
+    public void markPersonAsFinished(String slug, Long personId) {
+        Expense expense = expenseRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Expense not found with slug: " + slug));
+        
+        Person person = expense.findPersonById(personId);
+        person.setFinished(true);
+        
+        expenseRepository.save(expense);
+    }
+
+    @Transactional
+    public void markPersonAsPending(String slug, Long personId) {
+        Expense expense = expenseRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Expense not found with slug: " + slug));
+        
+        Person person = expense.findPersonById(personId);
+        person.setFinished(false);
+        
+        expenseRepository.save(expense);
+    }
 }

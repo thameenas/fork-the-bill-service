@@ -33,6 +33,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
 public class ExpenseServiceTest {
@@ -584,5 +585,135 @@ public class ExpenseServiceTest {
         expense.addPerson(person);
 
         return expense;
+    }
+
+    @Test
+    public void markPersonAsFinished_shouldMarkPersonAsFinished_whenValidSlugAndPersonId() {
+        // Given
+        String slug = "test-slug";
+        Long personId = 1L;
+        
+        Expense expense = createTestExpense();
+        Person person = createTestPerson(personId, "John Doe");
+        expense.addPerson(person);
+        
+        when(expenseRepository.findBySlug(slug)).thenReturn(Optional.of(expense));
+        when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
+        
+        // When
+        expenseService.markPersonAsFinished(slug, personId);
+        
+        // Then
+        verify(expenseRepository).save(expenseCaptor.capture());
+        Expense savedExpense = expenseCaptor.getValue();
+        Person savedPerson = savedExpense.findPersonById(personId);
+        assertTrue(savedPerson.isFinished());
+    }
+    
+    @Test
+    public void markPersonAsFinished_shouldThrowResourceNotFoundException_whenExpenseNotFound() {
+        // Given
+        String slug = "non-existent-slug";
+        Long personId = 1L;
+        
+        when(expenseRepository.findBySlug(slug)).thenReturn(Optional.empty());
+        
+        // When & Then
+        assertThrows(ResourceNotFoundException.class, () -> 
+            expenseService.markPersonAsFinished(slug, personId));
+        
+        verify(expenseRepository, never()).save(any(Expense.class));
+    }
+    
+    @Test
+    public void markPersonAsFinished_shouldThrowResourceNotFoundException_whenPersonNotFound() {
+        // Given
+        String slug = "test-slug";
+        Long personId = 999L;
+        
+        Expense expense = createTestExpense();
+        Person person = createTestPerson(1L, "John Doe");
+        expense.addPerson(person);
+        
+        when(expenseRepository.findBySlug(slug)).thenReturn(Optional.of(expense));
+        
+        // When & Then
+        assertThrows(ResourceNotFoundException.class, () -> 
+            expenseService.markPersonAsFinished(slug, personId));
+        
+        verify(expenseRepository, never()).save(any(Expense.class));
+    }
+    
+    @Test
+    public void markPersonAsPending_shouldMarkPersonAsPending_whenValidSlugAndPersonId() {
+        // Given
+        String slug = "test-slug";
+        Long personId = 1L;
+        
+        Expense expense = createTestExpense();
+        Person person = createTestPerson(personId, "John Doe");
+        person.setFinished(true); // Start with finished status
+        expense.addPerson(person);
+        
+        when(expenseRepository.findBySlug(slug)).thenReturn(Optional.of(expense));
+        when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
+        
+        // When
+        expenseService.markPersonAsPending(slug, personId);
+        
+        // Then
+        verify(expenseRepository).save(expenseCaptor.capture());
+        Expense savedExpense = expenseCaptor.getValue();
+        Person savedPerson = savedExpense.findPersonById(personId);
+        assertFalse(savedPerson.isFinished());
+    }
+    
+    @Test
+    public void markPersonAsPending_shouldThrowResourceNotFoundException_whenExpenseNotFound() {
+        // Given
+        String slug = "non-existent-slug";
+        Long personId = 1L;
+        
+        when(expenseRepository.findBySlug(slug)).thenReturn(Optional.empty());
+        
+        // When & Then
+        assertThrows(ResourceNotFoundException.class, () -> 
+            expenseService.markPersonAsPending(slug, personId));
+        
+        verify(expenseRepository, never()).save(any(Expense.class));
+    }
+    
+    @Test
+    public void markPersonAsPending_shouldThrowResourceNotFoundException_whenPersonNotFound() {
+        // Given
+        String slug = "test-slug";
+        Long personId = 999L;
+        
+        Expense expense = createTestExpense();
+        Person person = createTestPerson(1L, "John Doe");
+        expense.addPerson(person);
+        
+        when(expenseRepository.findBySlug(slug)).thenReturn(Optional.of(expense));
+        
+        // When & Then
+        assertThrows(ResourceNotFoundException.class, () -> 
+            expenseService.markPersonAsPending(slug, personId));
+        
+        verify(expenseRepository, never()).save(any(Expense.class));
+    }
+    
+    private Person createTestPerson(Long id, String name) {
+        Person person = Person.builder()
+                .id(id)
+                .name(name)
+                .amountOwed(BigDecimal.ZERO)
+                .subtotal(BigDecimal.ZERO)
+                .taxShare(BigDecimal.ZERO)
+                .tipShare(BigDecimal.ZERO)
+                .totalOwed(BigDecimal.ZERO)
+                .isFinished(false)
+                .itemsClaimed(new ArrayList<>())
+                .build();
+        return person;
     }
 }
