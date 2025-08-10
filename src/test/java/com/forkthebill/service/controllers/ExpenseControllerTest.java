@@ -229,7 +229,7 @@ public class ExpenseControllerTest {
         when(expenseService.claimItem(eq(slug), eq(itemId), eq(1L))).thenReturn(response);
         
         // When & Then
-        mockMvc.perform(post("/expense/{slug}/items/{itemId}/claims", slug, itemId)
+        mockMvc.perform(post("/expense/{slug}/items/{itemId}/claim", slug, itemId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -250,7 +250,7 @@ public class ExpenseControllerTest {
                 .thenThrow(new ResourceNotFoundException("Expense not found with slug: " + slug));
         
         // When & Then
-        mockMvc.perform(post("/expense/{slug}/items/{itemId}/claims", slug, itemId)
+        mockMvc.perform(post("/expense/{slug}/items/{itemId}/claim", slug, itemId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
@@ -269,7 +269,7 @@ public class ExpenseControllerTest {
                 .thenThrow(new ValidationException("Item is already claimed by this person"));
         
         // When & Then
-        mockMvc.perform(post("/expense/{slug}/items/{itemId}/claims", slug, itemId)
+        mockMvc.perform(post("/expense/{slug}/items/{itemId}/claim", slug, itemId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -281,7 +281,7 @@ public class ExpenseControllerTest {
         String slug = "test-slug";
         String itemId = "item-1";
         Long personId = 1L;
-        
+
         ExpenseResponse response = ExpenseResponse.builder()
                 .id("1")
                 .slug(slug)
@@ -296,7 +296,7 @@ public class ExpenseControllerTest {
         when(expenseService.unclaimItem(eq(slug), eq(itemId), eq(personId))).thenReturn(response);
         
         // When & Then
-        mockMvc.perform(delete("/expense/{slug}/items/{itemId}/claims/{personId}", slug, itemId, personId))
+        mockMvc.perform(delete("/expense/{slug}/items/{itemId}/claim/{personId}", slug, itemId, personId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.slug").value(slug));
@@ -313,7 +313,7 @@ public class ExpenseControllerTest {
                 .thenThrow(new ResourceNotFoundException("Expense not found with slug: " + slug));
         
         // When & Then
-        mockMvc.perform(delete("/expense/{slug}/items/{itemId}/claims/{personId}", slug, itemId, personId))
+        mockMvc.perform(delete("/expense/{slug}/items/{itemId}/claim/{personId}", slug, itemId, personId))
                 .andExpect(status().isNotFound());
     }
     
@@ -328,7 +328,7 @@ public class ExpenseControllerTest {
                 .thenThrow(new ValidationException("Item is not claimed by this person"));
         
         // When & Then
-        mockMvc.perform(delete("/expense/{slug}/items/{itemId}/claims/{personId}", slug, itemId, personId))
+        mockMvc.perform(delete("/expense/{slug}/items/{itemId}/claim/{personId}", slug, itemId, personId))
                 .andExpect(status().isBadRequest());
     }
     

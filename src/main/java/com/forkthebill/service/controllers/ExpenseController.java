@@ -45,7 +45,7 @@ public class ExpenseController {
         return ResponseEntity.ok(response);
     }
     
-    @PostMapping("/{slug}/items/{itemId}/claims")
+    @PostMapping("/{slug}/items/{itemId}/claim")
     public ResponseEntity<ExpenseResponse> claimItem(
             @PathVariable String slug,
             @PathVariable String itemId,
@@ -54,7 +54,7 @@ public class ExpenseController {
         return ResponseEntity.ok(response);
     }
     
-    @DeleteMapping("/{slug}/items/{itemId}/claims/{personId}")
+    @DeleteMapping("/{slug}/items/{itemId}/claim/{personId}")
     public ResponseEntity<ExpenseResponse> unclaimItem(
             @PathVariable String slug,
             @PathVariable String itemId,
