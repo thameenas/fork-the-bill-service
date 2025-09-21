@@ -1,11 +1,9 @@
 package com.forkthebill.service.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.forkthebill.service.exceptions.ResourceNotFoundException;
 import com.forkthebill.service.exceptions.ValidationException;
-import com.forkthebill.service.models.dto.ExpenseRequest;
-import com.forkthebill.service.models.dto.ExpenseResponse;
-import com.forkthebill.service.models.dto.ItemResponse;
-import com.forkthebill.service.models.dto.PersonResponse;
+import com.forkthebill.service.models.dto.*;
 import com.forkthebill.service.models.entities.Expense;
 import com.forkthebill.service.models.entities.Item;
 import com.forkthebill.service.models.entities.Person;
@@ -18,9 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import com.forkthebill.service.models.dto.PersonRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +26,7 @@ public class ExpenseService {
     
     private final ExpenseRepository expenseRepository;
     private final SlugGenerator slugGenerator;
+    private final GeminiService geminiService;
     
     @Transactional
     public ExpenseResponse createExpense(ExpenseRequest request) {
@@ -116,12 +115,16 @@ public class ExpenseService {
         
         return mapToExpenseResponse(updatedExpense);
     }
-    
+
     private void validateExpenseRequest(ExpenseRequest request) {
         BigDecimal calculatedTotal = request.getSubtotal().add(request.getTax()).add(request.getTip());
-        
-        if (request.getTotalAmount().compareTo(calculatedTotal) != 0) {
-            throw new ValidationException("Total amount must equal subtotal + tax + tip");
+        BigDecimal margin = new BigDecimal("5.00"); // 5 rupee margin
+        BigDecimal difference = request.getTotalAmount().subtract(calculatedTotal).abs();
+
+        if (difference.compareTo(margin) > 0) {
+            throw new ValidationException("Total amount must be within 5 rupees of calculated total (subtotal + tax + tip). " +
+                    "Expected: " + calculatedTotal + ", Actual: " + request.getTotalAmount() +
+                    ", Difference: " + difference);
         }
     }
     
@@ -263,5 +266,38 @@ public class ExpenseService {
         
         Expense savedExpense = expenseRepository.save(expense);
         return mapToExpenseResponse(savedExpense);
+    }
+    
+    @Transactional
+    public ExpenseResponse createExpenseFromImage(byte[] imageData, String payerName) {
+        try {
+            String geminiResponse = geminiService.getGeminiResponse(imageData);
+            ObjectMapper objectMapper = new ObjectMapper();
+            BillParsedData billParsedData = objectMapper.readValue(geminiResponse, BillParsedData.class);
+            ExpenseRequest expenseRequest = createExpenseRequestFromParsedData(billParsedData, payerName);
+
+            return createExpense(expenseRequest);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create expense from image: " + e.getMessage(), e);
+        }
+    }
+    
+    private ExpenseRequest createExpenseRequestFromParsedData(BillParsedData parsedData, String payerName) {
+        List<ItemRequest> itemRequests = parsedData.getItems().stream()
+                .map(billItem -> ItemRequest.builder()
+                        .name(billItem.getName())
+                        .price(billItem.getPrice())
+                        .build())
+                .collect(Collectors.toList());
+        
+        return ExpenseRequest.builder()
+                .subtotal(parsedData.getSubtotal())
+                .tax(parsedData.getTax())
+                .tip(parsedData.getTip())
+                .totalAmount(parsedData.getTotalAmount())
+                .items(itemRequests)
+                .payerName(payerName)
+                .people(new ArrayList<>()) // No people initially, they can be added later
+                .build();
     }
 }

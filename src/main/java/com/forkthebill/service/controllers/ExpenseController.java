@@ -3,20 +3,14 @@ package com.forkthebill.service.controllers;
 import com.forkthebill.service.models.dto.ClaimItemRequest;
 import com.forkthebill.service.models.dto.ExpenseRequest;
 import com.forkthebill.service.models.dto.ExpenseResponse;
+import com.forkthebill.service.models.dto.PersonRequest;
 import com.forkthebill.service.services.ExpenseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import com.forkthebill.service.models.dto.PersonRequest;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -31,6 +25,24 @@ public class ExpenseController {
     public ResponseEntity<ExpenseResponse> createExpense(@Valid @RequestBody ExpenseRequest request) {
         ExpenseResponse response = expenseService.createExpense(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+    
+    @PostMapping("/upload")
+    public ResponseEntity<ExpenseResponse> createExpenseFromImage(
+            @RequestParam("bill") MultipartFile file, @RequestParam("payerName") String payerName) {
+        
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("File is empty");
+        }
+        
+        try {
+            byte[] imageData = file.getBytes();
+            ExpenseResponse response = expenseService.createExpenseFromImage(imageData, payerName);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to process image: " + e.getMessage(), e);
+        }
     }
     
     @GetMapping("/{slug}")

@@ -2,11 +2,7 @@ package com.forkthebill.service.services;
 
 import com.forkthebill.service.exceptions.ResourceNotFoundException;
 import com.forkthebill.service.exceptions.ValidationException;
-import com.forkthebill.service.models.dto.ExpenseRequest;
-import com.forkthebill.service.models.dto.ExpenseResponse;
-import com.forkthebill.service.models.dto.ItemRequest;
-import com.forkthebill.service.models.dto.ItemResponse;
-import com.forkthebill.service.models.dto.PersonResponse;
+import com.forkthebill.service.models.dto.*;
 import com.forkthebill.service.models.entities.Expense;
 import com.forkthebill.service.models.entities.Item;
 import com.forkthebill.service.models.entities.Person;
@@ -47,6 +43,9 @@ public class ExpenseServiceTest {
     @Mock
     private SlugGenerator slugGenerator;
 
+    @Mock
+    private GeminiService geminiService;
+
     @Captor
     private ArgumentCaptor<Expense> expenseCaptor;
 
@@ -55,7 +54,7 @@ public class ExpenseServiceTest {
 
     @BeforeEach
     public void setup() {
-        expenseService = new ExpenseService(expenseRepository, slugGenerator);
+        expenseService = new ExpenseService(expenseRepository, slugGenerator, geminiService);
     }
 
     @Test
@@ -101,16 +100,16 @@ public class ExpenseServiceTest {
         assertThat(response.getPayerName()).isEqualTo(request.getPayerName());
         assertThat(response.getTotalAmount()).isEqualByComparingTo(request.getTotalAmount());
     }
-    
+
     @Test
-    public void createExpense_shouldThrowException_whenTotalAmountDoesNotMatchCalculatedTotal() {
+    public void createExpense_shouldThrowException_whenTotalAmountExceedsMarginByMoreThan5Rupees() {
         // Given
         ExpenseRequest request = ExpenseRequest.builder()
                 .payerName("John Doe")
                 .totalAmount(new BigDecimal("100.00"))
                 .subtotal(new BigDecimal("80.00"))
                 .tax(new BigDecimal("10.00"))
-                .tip(new BigDecimal("5.00")) // This makes the total 95, not 100
+                .tip(new BigDecimal("3.00")) // This makes the total 93, difference is 7 (> 5)
                 .items(List.of(
                         ItemRequest.builder()
                                 .name("Burger")
@@ -122,7 +121,47 @@ public class ExpenseServiceTest {
         // When/Then
         assertThatThrownBy(() -> expenseService.createExpense(request))
                 .isInstanceOf(ValidationException.class)
-                .hasMessageContaining("Total amount must equal subtotal + tax + tip");
+                .hasMessageContaining("Total amount must be within 5 rupees of calculated total");
+    }
+    
+    @Test
+    public void createExpense_shouldSucceed_whenTotalAmountWithinMargin() {
+        String slug = "test-slug";
+        when(slugGenerator.generateUniqueSlug()).thenReturn(slug);
+        
+        ExpenseRequest request = ExpenseRequest.builder()
+                .payerName("John Doe")
+                .totalAmount(new BigDecimal("100.00"))
+                .subtotal(new BigDecimal("80.00"))
+                .tax(new BigDecimal("10.00"))
+                .tip(new BigDecimal("8.00")) // This makes the total 98, difference is 2 (within margin)
+                .items(List.of(
+                        ItemRequest.builder()
+                                .name("Burger")
+                                .price(new BigDecimal("80.00"))
+                                .build()
+                ))
+                .build();
+        
+        Expense savedExpense = Expense.builder()
+                .id("1")
+                .slug(slug)
+                .createdAt(LocalDateTime.now())
+                .payerName(request.getPayerName())
+                .totalAmount(request.getTotalAmount())
+                .subtotal(request.getSubtotal())
+                .tax(request.getTax())
+                .tip(request.getTip())
+                .items(new ArrayList<>())
+                .people(new ArrayList<>())
+                .build();
+        
+        when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
+
+        ExpenseResponse response = expenseService.createExpense(request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getTotalAmount()).isEqualByComparingTo(request.getTotalAmount());
     }
     
     @Test
@@ -241,7 +280,7 @@ public class ExpenseServiceTest {
     }
     
     @Test
-    public void updateExpenseBySlug_shouldThrowException_whenTotalAmountDoesNotMatchCalculatedTotal() {
+    public void updateExpenseBySlug_shouldThrowException_whenTotalAmountExceedsMargin() {
         // Given
         String slug = "test-slug";
         ExpenseRequest updateRequest = ExpenseRequest.builder()
@@ -249,7 +288,7 @@ public class ExpenseServiceTest {
                 .totalAmount(new BigDecimal("120.00"))
                 .subtotal(new BigDecimal("100.00"))
                 .tax(new BigDecimal("10.00"))
-                .tip(new BigDecimal("5.00")) // This makes the total 115, not 120
+                .tip(new BigDecimal("4.00")) // This makes the total 114, difference is 6 (> 5)
                 .items(List.of(
                         ItemRequest.builder()
                                 .name("Pizza")
@@ -261,7 +300,7 @@ public class ExpenseServiceTest {
         // When/Then
         assertThatThrownBy(() -> expenseService.updateExpenseBySlug(slug, updateRequest))
                 .isInstanceOf(ValidationException.class)
-                .hasMessageContaining("Total amount must equal subtotal + tax + tip");
+                .hasMessageContaining("Total amount must be within 5 rupees of calculated total");
     }
     
     @Test
@@ -883,5 +922,96 @@ public class ExpenseServiceTest {
 
         verify(expenseRepository).findBySlug(slug);
         verify(expenseRepository).save(expense);
+    }
+
+    @Test
+    public void createExpenseFromImage_shouldCreateExpenseFromParsedData() {
+        byte[] imageData = "test-image-data".getBytes();
+        String payerName = "John Doe";
+        String slug = "test-slug";
+        
+        BillParsedData parsedData = BillParsedData.builder()
+                .subtotal(new BigDecimal("80.00"))
+                .tax(new BigDecimal("10.00"))
+                .tip(new BigDecimal("10.00"))
+                .totalAmount(new BigDecimal("100.00"))
+                .items(List.of(
+                        BillParsedData.BillItem.builder()
+                                .name("Burger")
+                                .price(new BigDecimal("80.00"))
+                                .quantity(1)
+                                .build()
+                ))
+                .restaurantName("Test Restaurant")
+                .date("2024-01-01")
+                .build();
+        
+        String geminiResponse = "{\"subtotal\":80.00,\"tax\":10.00,\"tip\":10.00,\"totalAmount\":100.00,\"items\":[{\"name\":\"Burger\",\"price\":80.00,\"quantity\":1}],\"restaurantName\":\"Test Restaurant\",\"date\":\"2024-01-01\"}";
+        
+        when(geminiService.getGeminiResponse(imageData)).thenReturn(geminiResponse);
+        when(slugGenerator.generateUniqueSlug()).thenReturn(slug);
+        
+        Expense savedExpense = Expense.builder()
+                .id("1")
+                .slug(slug)
+                .createdAt(LocalDateTime.now())
+                .payerName(payerName)
+                .totalAmount(parsedData.getTotalAmount())
+                .subtotal(parsedData.getSubtotal())
+                .tax(parsedData.getTax())
+                .tip(parsedData.getTip())
+                .items(new ArrayList<>())
+                .people(new ArrayList<>())
+                .build();
+        
+        Item item = Item.builder()
+                .id("item1")
+                .name("Burger")
+                .price(new BigDecimal("80.00"))
+                .claimedBy(new ArrayList<>())
+                .build();
+        savedExpense.addItem(item);
+        
+        when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
+
+        ExpenseResponse response = expenseService.createExpenseFromImage(imageData, payerName);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getPayerName()).isEqualTo(payerName);
+        assertThat(response.getTotalAmount()).isEqualByComparingTo(parsedData.getTotalAmount());
+        assertThat(response.getSubtotal()).isEqualByComparingTo(parsedData.getSubtotal());
+        assertThat(response.getTax()).isEqualByComparingTo(parsedData.getTax());
+        assertThat(response.getTip()).isEqualByComparingTo(parsedData.getTip());
+        assertThat(response.getItems()).hasSize(1);
+        assertThat(response.getItems().get(0).getName()).isEqualTo("Burger");
+        assertThat(response.getItems().get(0).getPrice()).isEqualByComparingTo(new BigDecimal("80.00"));
+        
+        verify(geminiService).getGeminiResponse(imageData);
+        verify(expenseRepository).save(any(Expense.class));
+    }
+
+    @Test
+    public void createExpenseFromImage_shouldThrowException_whenGeminiServiceFails() {
+        byte[] imageData = "test-image-data".getBytes();
+        String payerName = "John Doe";
+        
+        when(geminiService.getGeminiResponse(imageData)).thenThrow(new RuntimeException("Gemini service error"));
+
+        assertThatThrownBy(() -> expenseService.createExpenseFromImage(imageData, payerName))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Failed to create expense from image");
+    }
+
+    @Test
+    public void createExpenseFromImage_shouldThrowException_whenJsonParsingFails() {
+        byte[] imageData = "test-image-data".getBytes();
+        String payerName = "John Doe";
+        
+        when(geminiService.getGeminiResponse(imageData)).thenReturn("invalid-json");
+
+        assertThatThrownBy(() -> expenseService.createExpenseFromImage(imageData, payerName))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Failed to create expense from image");
     }
 }

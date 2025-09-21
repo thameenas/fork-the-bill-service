@@ -36,6 +36,13 @@ dependencies {
     
     // Test dependencies
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    
+    // Apache Commons for file handling
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    
+    // JSON processing for HTTP responses
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.google.genai:google-genai:1.+'
 }
 
 tasks.named('test') {
