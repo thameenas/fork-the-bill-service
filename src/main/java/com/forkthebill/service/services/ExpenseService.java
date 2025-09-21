@@ -118,7 +118,7 @@ public class ExpenseService {
                 expense.addItem(item);
             }
         });
-
+        expense.recalculateAmounts();
         Expense updatedExpense = expenseRepository.save(expense);
 
         return mapToExpenseResponse(updatedExpense);
