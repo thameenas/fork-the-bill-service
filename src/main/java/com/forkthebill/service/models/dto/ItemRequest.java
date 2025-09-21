@@ -15,6 +15,9 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class ItemRequest {
+
+    private String id;
+
     @NotBlank(message = "Item name is required")
     private String name;
     

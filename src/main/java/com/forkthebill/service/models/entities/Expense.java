@@ -52,6 +52,7 @@ public class Expense {
     @OneToMany(mappedBy = "expense", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     @Builder.Default
+    @OrderColumn(name = "item_order")
     private List<Item> items = new ArrayList<>();
     
     @OneToMany(mappedBy = "expense", cascade = CascadeType.ALL, orphanRemoval = true)

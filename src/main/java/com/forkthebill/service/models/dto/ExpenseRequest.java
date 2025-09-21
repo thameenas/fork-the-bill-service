@@ -34,8 +34,6 @@ public class ExpenseRequest {
     @Positive(message = "Tax must be positive")
     private BigDecimal tax;
     
-    @NotNull(message = "Tip is required")
-    @Positive(message = "Tip must be positive")
     private BigDecimal tip;
     
     @NotNull(message = "Items list cannot be null")

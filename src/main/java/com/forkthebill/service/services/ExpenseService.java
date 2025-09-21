@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -30,8 +31,8 @@ public class ExpenseService {
     
     @Transactional
     public ExpenseResponse createExpense(ExpenseRequest request) {
-        validateExpenseRequest(request);
-        
+//        validateExpenseRequest(request);
+
         String slug = slugGenerator.generateUniqueSlug();
         
         Expense expense = Expense.builder()
@@ -55,7 +56,7 @@ public class ExpenseService {
                     .build();
             expense.addItem(item);
         });
-        
+
         // Add people if provided
         if (request.getPeople() != null && !request.getPeople().isEmpty()) {
             request.getPeople().forEach(personRequest -> {
@@ -72,47 +73,54 @@ public class ExpenseService {
                 expense.addPerson(person);
             });
         }
-        
+
         Expense savedExpense = expenseRepository.save(expense);
-        
+
         return mapToExpenseResponse(savedExpense);
     }
-    
+
     public ExpenseResponse getExpenseBySlug(String slug) {
         Expense expense = expenseRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Expense not found with slug: " + slug));
-        
+
         return mapToExpenseResponse(expense);
     }
-    
+
     @Transactional
     public ExpenseResponse updateExpenseBySlug(String slug, ExpenseRequest request) {
-        validateExpenseRequest(request);
-        
+//        validateExpenseRequest(request);
+
         Expense expense = expenseRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Expense not found with slug: " + slug));
-        
+
         // Update basic expense properties
         expense.setPayerName(request.getPayerName());
         expense.setTotalAmount(request.getTotalAmount());
         expense.setSubtotal(request.getSubtotal());
         expense.setTax(request.getTax());
         expense.setTip(request.getTip());
-        
-        // Clear existing items and add new ones
-        expense.getItems().clear();
-        
-        request.getItems().forEach(itemRequest -> {
-            Item item = Item.builder()
-                    .name(itemRequest.getName())
-                    .price(itemRequest.getPrice())
-                    .claimedBy(new ArrayList<>())
-                    .build();
-            expense.addItem(item);
+
+        request.getItems().forEach(newItem -> {
+            Optional<Item> existingItem = expense.getItems().stream()
+                    .filter(existing -> existing.getId().equals(newItem.getId()))
+                    .findFirst();
+            if (existingItem.isPresent()) {
+                existingItem.get().setName(newItem.getName());
+                existingItem.get().setPrice(newItem.getPrice());
+                System.out.println("Updated existing item");
+            } else {
+                Item item = Item.builder()
+                        .name(newItem.getName())
+                        .price(newItem.getPrice())
+                        .claimedBy(new ArrayList<>())
+                        .build();
+                System.out.println("Updated new item");
+                expense.addItem(item);
+            }
         });
-        
+
         Expense updatedExpense = expenseRepository.save(expense);
-        
+
         return mapToExpenseResponse(updatedExpense);
     }
 
@@ -127,7 +135,7 @@ public class ExpenseService {
                     ", Difference: " + difference);
         }
     }
-    
+
     private ExpenseResponse mapToExpenseResponse(Expense expense) {
         return ExpenseResponse.builder()
                 .id(expense.getId())
@@ -146,7 +154,7 @@ public class ExpenseService {
                         .collect(Collectors.toList()))
                 .build();
     }
-    
+
     private ItemResponse mapToItemResponse(Item item) {
         return ItemResponse.builder()
                 .id(item.getId())
@@ -155,7 +163,7 @@ public class ExpenseService {
                 .claimedBy(item.getClaimedBy())
                 .build();
     }
-    
+
     private PersonResponse mapToPersonResponse(Person person) {
         return PersonResponse.builder()
                 .id(person.getId())
@@ -174,25 +182,25 @@ public class ExpenseService {
     public ExpenseResponse claimItem(String slug, String itemId, UUID personId) {
         Expense expense = expenseRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Expense not found with slug: " + slug));
-        
+
         // Validate item exists
         Item item = expense.findItemById(itemId);
-        
+
         // Validate person exists
         Person person = expense.findPersonById(personId);
-        
+
         // Check if already claimed
         if (item.getClaimedBy().contains(personId)) {
             throw new ValidationException("Item is already claimed by this person");
         }
-        
+
         // Check if person has already claimed this item
         if (person.getItemsClaimed().contains(itemId)) {
             throw new ValidationException("Person has already claimed this item");
         }
-        
+
         expense.claimItem(itemId, personId);
-        
+
         Expense updatedExpense = expenseRepository.save(expense);
         return mapToExpenseResponse(updatedExpense);
     }
@@ -201,25 +209,25 @@ public class ExpenseService {
     public ExpenseResponse unclaimItem(String slug, String itemId, UUID personId) {
         Expense expense = expenseRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Expense not found with slug: " + slug));
-        
+
         // Validate item exists
         Item item = expense.findItemById(itemId);
-        
+
         // Validate person exists
         Person person = expense.findPersonById(personId);
-        
+
         // Check if not claimed
         if (!item.getClaimedBy().contains(personId)) {
             throw new ValidationException("Item is not claimed by this person");
         }
-        
+
         // Check if person hasn't claimed this item
         if (!person.getItemsClaimed().contains(itemId)) {
             throw new ValidationException("Person has not claimed this item");
         }
-        
+
         expense.unclaimItem(itemId, personId);
-        
+
         Expense updatedExpense = expenseRepository.save(expense);
         return mapToExpenseResponse(updatedExpense);
     }
@@ -228,10 +236,10 @@ public class ExpenseService {
     public void markPersonAsFinished(String slug, UUID personId) {
         Expense expense = expenseRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Expense not found with slug: " + slug));
-        
+
         Person person = expense.findPersonById(personId);
         person.setFinished(true);
-        
+
         expenseRepository.save(expense);
     }
 
@@ -239,10 +247,10 @@ public class ExpenseService {
     public void markPersonAsPending(String slug, UUID personId) {
         Expense expense = expenseRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Expense not found with slug: " + slug));
-        
+
         Person person = expense.findPersonById(personId);
         person.setFinished(false);
-        
+
         expenseRepository.save(expense);
     }
 
@@ -250,7 +258,7 @@ public class ExpenseService {
     public ExpenseResponse addPersonToExpense(String slug, PersonRequest personRequest) {
         Expense expense = expenseRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Expense not found with slug: " + slug));
-        
+
         Person person = Person.builder()
                 .name(personRequest.getName())
                 .amountOwed(personRequest.getAmountOwed() != null ? personRequest.getAmountOwed() : BigDecimal.ZERO)
@@ -261,13 +269,13 @@ public class ExpenseService {
                 .isFinished(personRequest.isFinished())
                 .itemsClaimed(new ArrayList<>())
                 .build();
-        
+
         expense.addPerson(person);
-        
+
         Expense savedExpense = expenseRepository.save(expense);
         return mapToExpenseResponse(savedExpense);
     }
-    
+
     @Transactional
     public ExpenseResponse createExpenseFromImage(byte[] imageData, String payerName) {
         try {
@@ -281,15 +289,15 @@ public class ExpenseService {
             throw new RuntimeException("Failed to create expense from image: " + e.getMessage(), e);
         }
     }
-    
+
     private ExpenseRequest createExpenseRequestFromParsedData(BillParsedData parsedData, String payerName) {
         List<ItemRequest> itemRequests = parsedData.getItems().stream()
                 .map(billItem -> ItemRequest.builder()
                         .name(billItem.getName())
-                        .price(billItem.getPrice())
+                        .price(billItem.getPrice().multiply(new BigDecimal(billItem.getQuantity())))
                         .build())
                 .collect(Collectors.toList());
-        
+
         return ExpenseRequest.builder()
                 .subtotal(parsedData.getSubtotal())
                 .tax(parsedData.getTax())
