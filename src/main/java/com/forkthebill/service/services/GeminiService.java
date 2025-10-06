@@ -51,7 +51,7 @@ public class GeminiService {
 
             // Specify the model and the prompt.
             GenerateContentResponse response = client.models.generateContent(
-                    "gemini-1.5-flash",
+                    "gemini-2.5-flash",
                     Content.fromParts(textPart, imagePart),
                     null); // The last parameter is for custom options, null for default.
 
