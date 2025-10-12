@@ -24,19 +24,20 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ExpenseService {
-    
+
     private final ExpenseRepository expenseRepository;
     private final SlugGenerator slugGenerator;
     private final GeminiService geminiService;
-    
+
     @Transactional
     public ExpenseResponse createExpense(ExpenseRequest request) {
 //        validateExpenseRequest(request);
 
         String slug = slugGenerator.generateUniqueSlug();
-        
+
         Expense expense = Expense.builder()
                 .payerName(request.getPayerName())
+                .restaurantName(request.getRestaurantName())
                 .totalAmount(request.getTotalAmount())
                 .subtotal(request.getSubtotal())
                 .tax(request.getTax())
@@ -46,12 +47,13 @@ public class ExpenseService {
                 .items(new ArrayList<>())
                 .people(new ArrayList<>())
                 .build();
-        
+
         // Add items
         request.getItems().forEach(itemRequest -> {
             Item item = Item.builder()
                     .name(itemRequest.getName())
                     .price(itemRequest.getPrice())
+                    .quantity(itemRequest.getQuantity())
                     .claimedBy(new ArrayList<>())
                     .build();
             expense.addItem(item);
@@ -139,6 +141,7 @@ public class ExpenseService {
     private ExpenseResponse mapToExpenseResponse(Expense expense) {
         return ExpenseResponse.builder()
                 .id(expense.getId())
+                .restaurantName(expense.getRestaurantName())
                 .slug(expense.getSlug())
                 .createdAt(expense.getCreatedAt())
                 .payerName(expense.getPayerName())
@@ -160,6 +163,7 @@ public class ExpenseService {
                 .id(item.getId())
                 .name(item.getName())
                 .price(item.getPrice())
+                .quantity(item.getQuantity())
                 .claimedBy(item.getClaimedBy())
                 .build();
     }
@@ -295,11 +299,13 @@ public class ExpenseService {
                 .map(billItem -> ItemRequest.builder()
                         .name(billItem.getName())
                         .price(billItem.getPrice().multiply(new BigDecimal(billItem.getQuantity())))
+                        .quantity(billItem.getQuantity())
                         .build())
                 .collect(Collectors.toList());
 
         return ExpenseRequest.builder()
                 .subtotal(parsedData.getSubtotal())
+                .restaurantName(parsedData.getRestaurantName())
                 .tax(parsedData.getTax())
                 .tip(parsedData.getTip())
                 .totalAmount(parsedData.getTotalAmount())

@@ -28,6 +28,9 @@ public class Item {
     
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
+
+    @Column
+    private Integer quantity;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "expense_id")

@@ -24,4 +24,6 @@ public class ItemRequest {
     @NotNull(message = "Item price is required")
     @Positive(message = "Item price must be positive")
     private BigDecimal price;
+
+    private Integer quantity;
 }

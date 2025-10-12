@@ -17,16 +17,17 @@ import java.util.List;
 public class ExpenseResponse {
     private String id;
     private String slug;
+    private String restaurantName;
     private LocalDateTime createdAt;
     private String payerName;
     private BigDecimal totalAmount;
     private BigDecimal subtotal;
     private BigDecimal tax;
     private BigDecimal tip;
-    
+
     @Builder.Default
     private List<ItemResponse> items = new ArrayList<>();
-    
+
     @Builder.Default
     private List<PersonResponse> people = new ArrayList<>();
 }
