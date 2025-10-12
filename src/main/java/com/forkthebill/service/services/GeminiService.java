@@ -27,7 +27,7 @@ public class GeminiService {
                 "items": [
                     {
                         "name": "Item name",
-                        "price": "Item price",
+                        "price": "Total Item amount for all quantity",
                         "quantity": "Quantity (if visible, otherwise 1)"
                     }
                 ]

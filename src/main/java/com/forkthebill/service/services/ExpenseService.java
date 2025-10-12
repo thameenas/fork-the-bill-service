@@ -14,12 +14,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -54,6 +56,7 @@ public class ExpenseService {
                     .name(itemRequest.getName())
                     .price(itemRequest.getPrice())
                     .quantity(itemRequest.getQuantity())
+                    .totalQuantity(itemRequest.getTotalQuantity())
                     .claimedBy(new ArrayList<>())
                     .build();
             expense.addItem(item);
@@ -296,11 +299,17 @@ public class ExpenseService {
 
     private ExpenseRequest createExpenseRequestFromParsedData(BillParsedData parsedData, String payerName) {
         List<ItemRequest> itemRequests = parsedData.getItems().stream()
-                .map(billItem -> ItemRequest.builder()
-                        .name(billItem.getName())
-                        .price(billItem.getPrice().multiply(new BigDecimal(billItem.getQuantity())))
-                        .quantity(billItem.getQuantity())
-                        .build())
+                .flatMap(billItem -> {
+                    BigDecimal unitPrice = billItem.getPrice().divide(new BigDecimal(billItem.getQuantity()), RoundingMode.CEILING);
+                    return IntStream.range(0, billItem.getQuantity())
+                            .mapToObj(i -> ItemRequest.builder()
+                                    .name(billItem.getName())
+                                    .price(unitPrice)
+                                    .quantity(1)
+                                    .totalQuantity(billItem.getQuantity())
+                                    .build()
+                            );
+                })
                 .collect(Collectors.toList());
 
         return ExpenseRequest.builder()

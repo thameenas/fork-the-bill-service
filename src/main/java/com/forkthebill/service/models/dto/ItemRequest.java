@@ -26,4 +26,6 @@ public class ItemRequest {
     private BigDecimal price;
 
     private Integer quantity;
+
+    private Integer totalQuantity;
 }

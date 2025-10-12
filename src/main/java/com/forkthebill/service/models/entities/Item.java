@@ -31,6 +31,8 @@ public class Item {
 
     @Column
     private Integer quantity;
+
+    private Integer totalQuantity;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "expense_id")
