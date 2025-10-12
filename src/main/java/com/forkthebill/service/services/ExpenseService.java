@@ -167,6 +167,7 @@ public class ExpenseService {
                 .name(item.getName())
                 .price(item.getPrice())
                 .quantity(item.getQuantity())
+                .totalQuantity(item.getTotalQuantity())
                 .claimedBy(item.getClaimedBy())
                 .build();
     }

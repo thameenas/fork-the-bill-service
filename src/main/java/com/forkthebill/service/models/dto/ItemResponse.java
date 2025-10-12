@@ -19,6 +19,7 @@ public class ItemResponse {
     private String name;
     private BigDecimal price;
     private Integer quantity;
+    private Integer totalQuantity;
 
     @Builder.Default
     private List<UUID> claimedBy = new ArrayList<>();
