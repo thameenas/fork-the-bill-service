@@ -42,7 +42,7 @@ public class Expense {
     private BigDecimal tax;
 
     @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal tip;
+    private BigDecimal serviceCharge;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
@@ -152,17 +152,17 @@ public class Expense {
             BigDecimal personSubtotal = calculatePersonSubtotal(person);
             person.setSubtotal(personSubtotal);
 
-            // Calculate tax and tip shares proportionally
+            // Calculate tax and service charge shares proportionally
             if (subtotal.compareTo(BigDecimal.ZERO) > 0) {
                 BigDecimal ratio = personSubtotal.divide(subtotal, 10, RoundingMode.HALF_UP);
                 person.setTaxShare(tax.multiply(ratio).setScale(2, RoundingMode.HALF_UP));
-                person.setTipShare(tip.multiply(ratio).setScale(2, RoundingMode.HALF_UP));
+                person.setServiceChargeShare(serviceCharge.multiply(ratio).setScale(2, RoundingMode.HALF_UP));
             } else {
                 person.setTaxShare(BigDecimal.ZERO);
-                person.setTipShare(BigDecimal.ZERO);
+                person.setServiceChargeShare(BigDecimal.ZERO);
             }
 
-            person.setTotalOwed(personSubtotal.add(person.getTaxShare()).add(person.getTipShare()));
+            person.setTotalOwed(personSubtotal.add(person.getTaxShare()).add(person.getServiceChargeShare()));
         }
     }
 }

@@ -74,7 +74,7 @@ public class ExpenseServiceTest {
                 .totalAmount(request.getTotalAmount())
                 .subtotal(request.getSubtotal())
                 .tax(request.getTax())
-                .tip(request.getTip())
+                .serviceCharge(request.getServiceCharge())
                 .items(new ArrayList<>())
                 .people(new ArrayList<>())
                 .build();
@@ -92,7 +92,7 @@ public class ExpenseServiceTest {
         assertThat(capturedExpense.getTotalAmount()).isEqualByComparingTo(request.getTotalAmount());
         assertThat(capturedExpense.getSubtotal()).isEqualByComparingTo(request.getSubtotal());
         assertThat(capturedExpense.getTax()).isEqualByComparingTo(request.getTax());
-        assertThat(capturedExpense.getTip()).isEqualByComparingTo(request.getTip());
+        assertThat(capturedExpense.getServiceCharge()).isEqualByComparingTo(request.getServiceCharge());
         assertThat(capturedExpense.getSlug()).isEqualTo(slug);
         assertThat(capturedExpense.getItems()).hasSize(1);
         
@@ -112,7 +112,7 @@ public class ExpenseServiceTest {
                 .totalAmount(new BigDecimal("100.00"))
                 .subtotal(new BigDecimal("80.00"))
                 .tax(new BigDecimal("10.00"))
-                .tip(new BigDecimal("3.00")) // This makes the total 93, difference is 7 (> 5)
+                .serviceCharge(new BigDecimal("3.00")) // This makes the total 93, difference is 7 (> 5)
                 .items(List.of(
                         ItemRequest.builder()
                                 .name("Burger")
@@ -137,7 +137,7 @@ public class ExpenseServiceTest {
                 .totalAmount(new BigDecimal("100.00"))
                 .subtotal(new BigDecimal("80.00"))
                 .tax(new BigDecimal("10.00"))
-                .tip(new BigDecimal("8.00")) // This makes the total 98, difference is 2 (within margin)
+                .serviceCharge(new BigDecimal("8.00")) // This makes the total 98, difference is 2 (within margin)
                 .items(List.of(
                         ItemRequest.builder()
                                 .name("Burger")
@@ -154,7 +154,7 @@ public class ExpenseServiceTest {
                 .totalAmount(request.getTotalAmount())
                 .subtotal(request.getSubtotal())
                 .tax(request.getTax())
-                .tip(request.getTip())
+                .serviceCharge(request.getServiceCharge())
                 .items(new ArrayList<>())
                 .people(new ArrayList<>())
                 .build();
@@ -179,7 +179,7 @@ public class ExpenseServiceTest {
                 .totalAmount(new BigDecimal("100.00"))
                 .subtotal(new BigDecimal("80.00"))
                 .tax(new BigDecimal("10.00"))
-                .tip(new BigDecimal("10.00"))
+                .serviceCharge(new BigDecimal("10.00"))
                 .items(new ArrayList<>())
                 .people(new ArrayList<>())
                 .build();
@@ -217,7 +217,7 @@ public class ExpenseServiceTest {
                 .totalAmount(new BigDecimal("120.00")) // Changed from 100.00
                 .subtotal(new BigDecimal("100.00")) // Changed from 80.00
                 .tax(new BigDecimal("10.00"))
-                .tip(new BigDecimal("10.00"))
+                .serviceCharge(new BigDecimal("10.00"))
                 .items(List.of(
                         ItemRequest.builder()
                                 .name("Pizza")
@@ -234,7 +234,7 @@ public class ExpenseServiceTest {
                 .totalAmount(new BigDecimal("100.00"))
                 .subtotal(new BigDecimal("80.00"))
                 .tax(new BigDecimal("10.00"))
-                .tip(new BigDecimal("10.00"))
+                .serviceCharge(new BigDecimal("10.00"))
                 .items(new ArrayList<>())
                 .people(new ArrayList<>())
                 .build();
@@ -292,7 +292,7 @@ public class ExpenseServiceTest {
                 .totalAmount(new BigDecimal("120.00"))
                 .subtotal(new BigDecimal("100.00"))
                 .tax(new BigDecimal("10.00"))
-                .tip(new BigDecimal("4.00")) // This makes the total 114, difference is 6 (> 5)
+                .serviceCharge(new BigDecimal("4.00")) // This makes the total 114, difference is 6 (> 5)
                 .items(List.of(
                         ItemRequest.builder()
                                 .name("Pizza")
@@ -556,7 +556,7 @@ public class ExpenseServiceTest {
                 .amountOwed(BigDecimal.ZERO)
                 .subtotal(BigDecimal.ZERO)
                 .taxShare(BigDecimal.ZERO)
-                .tipShare(BigDecimal.ZERO)
+                .serviceChargeShare(BigDecimal.ZERO)
                 .totalOwed(BigDecimal.ZERO)
                 .isFinished(false)
                 .build();
@@ -587,7 +587,7 @@ public class ExpenseServiceTest {
                 .totalAmount(new BigDecimal("100.00"))
                 .subtotal(new BigDecimal("80.00"))
                 .tax(new BigDecimal("10.00"))
-                .tip(new BigDecimal("10.00"))
+                .serviceCharge(new BigDecimal("10.00"))
                 .items(List.of(
                         ItemRequest.builder()
                                 .name("Burger")
@@ -605,7 +605,7 @@ public class ExpenseServiceTest {
                 .payerName("John Doe")
                 .subtotal(new BigDecimal("80.00"))
                 .tax(new BigDecimal("10.00"))
-                .tip(new BigDecimal("10.00"))
+                .serviceCharge(new BigDecimal("10.00"))
                 .totalAmount(new BigDecimal("100.00"))
                 .items(new ArrayList<>())
                 .people(new ArrayList<>())
@@ -626,7 +626,7 @@ public class ExpenseServiceTest {
                 .amountOwed(BigDecimal.ZERO)
                 .subtotal(BigDecimal.ZERO)
                 .taxShare(BigDecimal.ZERO)
-                .tipShare(BigDecimal.ZERO)
+                .serviceChargeShare(BigDecimal.ZERO)
                 .totalOwed(BigDecimal.ZERO)
                 .isFinished(false)
                 .build();
@@ -756,7 +756,7 @@ public class ExpenseServiceTest {
                 .amountOwed(BigDecimal.ZERO)
                 .subtotal(BigDecimal.ZERO)
                 .taxShare(BigDecimal.ZERO)
-                .tipShare(BigDecimal.ZERO)
+                .serviceChargeShare(BigDecimal.ZERO)
                 .totalOwed(BigDecimal.ZERO)
                 .isFinished(false)
                 .itemsClaimed(new ArrayList<>())
@@ -792,7 +792,7 @@ public class ExpenseServiceTest {
                 .totalAmount(new BigDecimal("50.00"))
                 .subtotal(new BigDecimal("40.00"))
                 .tax(new BigDecimal("5.00"))
-                .tip(new BigDecimal("5.00"))
+                .serviceCharge(new BigDecimal("5.00"))
                 .createdAt(LocalDateTime.now())
                 .items(new ArrayList<>())
                 .people(new ArrayList<>())
@@ -847,7 +847,7 @@ public class ExpenseServiceTest {
                 .totalAmount(new BigDecimal("50.00"))
                 .subtotal(new BigDecimal("40.00"))
                 .tax(new BigDecimal("5.00"))
-                .tip(new BigDecimal("5.00"))
+                .serviceCharge(new BigDecimal("5.00"))
                 .createdAt(LocalDateTime.now())
                 .items(new ArrayList<>())
                 .people(new ArrayList<>())
@@ -867,7 +867,7 @@ public class ExpenseServiceTest {
         assertEquals(BigDecimal.ZERO, addedPerson.getAmountOwed());
         assertEquals(BigDecimal.ZERO, addedPerson.getSubtotal());
         assertEquals(BigDecimal.ZERO, addedPerson.getTaxShare());
-        assertEquals(BigDecimal.ZERO, addedPerson.getTipShare());
+        assertEquals(BigDecimal.ZERO, addedPerson.getServiceChargeShare());
         assertEquals(BigDecimal.ZERO, addedPerson.getTotalOwed());
         assertFalse(addedPerson.isFinished());
         assertTrue(addedPerson.getItemsClaimed().isEmpty());
@@ -885,7 +885,7 @@ public class ExpenseServiceTest {
                 .amountOwed(new BigDecimal("20.00"))
                 .subtotal(new BigDecimal("15.00"))
                 .taxShare(new BigDecimal("2.00"))
-                .tipShare(new BigDecimal("3.00"))
+                .serviceChargeShare(new BigDecimal("3.00"))
                 .totalOwed(new BigDecimal("20.00"))
                 .isFinished(true)
                 .itemsClaimed(Arrays.asList("item-1", "item-2"))
@@ -898,7 +898,7 @@ public class ExpenseServiceTest {
                 .totalAmount(new BigDecimal("50.00"))
                 .subtotal(new BigDecimal("40.00"))
                 .tax(new BigDecimal("5.00"))
-                .tip(new BigDecimal("5.00"))
+                .serviceCharge(new BigDecimal("5.00"))
                 .createdAt(LocalDateTime.now())
                 .items(new ArrayList<>())
                 .people(new ArrayList<>())
@@ -918,7 +918,7 @@ public class ExpenseServiceTest {
         assertEquals(new BigDecimal("20.00"), addedPerson.getAmountOwed());
         assertEquals(new BigDecimal("15.00"), addedPerson.getSubtotal());
         assertEquals(new BigDecimal("2.00"), addedPerson.getTaxShare());
-        assertEquals(new BigDecimal("3.00"), addedPerson.getTipShare());
+        assertEquals(new BigDecimal("3.00"), addedPerson.getServiceChargeShare());
         assertEquals(new BigDecimal("20.00"), addedPerson.getTotalOwed());
         assertTrue(addedPerson.isFinished());
         // Note: itemsClaimed will be empty because we create a new Person with empty list
@@ -937,7 +937,7 @@ public class ExpenseServiceTest {
         BillParsedData parsedData = BillParsedData.builder()
                 .subtotal(new BigDecimal("80.00"))
                 .tax(new BigDecimal("10.00"))
-                .tip(new BigDecimal("10.00"))
+                .serviceCharge(new BigDecimal("10.00"))
                 .totalAmount(new BigDecimal("100.00"))
                 .items(List.of(
                         BillParsedData.BillItem.builder()
@@ -963,7 +963,7 @@ public class ExpenseServiceTest {
                 .totalAmount(parsedData.getTotalAmount())
                 .subtotal(parsedData.getSubtotal())
                 .tax(parsedData.getTax())
-                .tip(parsedData.getTip())
+                .serviceCharge(parsedData.getServiceCharge())
                 .items(new ArrayList<>())
                 .people(new ArrayList<>())
                 .build();
@@ -986,7 +986,7 @@ public class ExpenseServiceTest {
         assertThat(response.getTotalAmount()).isEqualByComparingTo(parsedData.getTotalAmount());
         assertThat(response.getSubtotal()).isEqualByComparingTo(parsedData.getSubtotal());
         assertThat(response.getTax()).isEqualByComparingTo(parsedData.getTax());
-        assertThat(response.getTip()).isEqualByComparingTo(parsedData.getTip());
+        assertThat(response.getServiceCharge()).isEqualByComparingTo(parsedData.getServiceCharge());
         assertThat(response.getItems()).hasSize(1);
         assertThat(response.getItems().get(0).getName()).isEqualTo("Burger");
         assertThat(response.getItems().get(0).getPrice()).isEqualByComparingTo(new BigDecimal("80.00"));

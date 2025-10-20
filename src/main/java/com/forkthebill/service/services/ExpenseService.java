@@ -43,7 +43,7 @@ public class ExpenseService {
                 .totalAmount(request.getTotalAmount())
                 .subtotal(request.getSubtotal())
                 .tax(request.getTax())
-                .tip(request.getTip())
+                .serviceCharge(request.getServiceCharge())
                 .createdAt(LocalDateTime.now())
                 .slug(slug)
                 .items(new ArrayList<>())
@@ -70,7 +70,7 @@ public class ExpenseService {
                         .amountOwed(personRequest.getAmountOwed() != null ? personRequest.getAmountOwed() : BigDecimal.ZERO)
                         .subtotal(personRequest.getSubtotal() != null ? personRequest.getSubtotal() : BigDecimal.ZERO)
                         .taxShare(personRequest.getTaxShare() != null ? personRequest.getTaxShare() : BigDecimal.ZERO)
-                        .tipShare(personRequest.getTipShare() != null ? personRequest.getTipShare() : BigDecimal.ZERO)
+                        .serviceChargeShare(personRequest.getServiceChargeShare() != null ? personRequest.getServiceChargeShare() : BigDecimal.ZERO)
                         .totalOwed(personRequest.getTotalOwed() != null ? personRequest.getTotalOwed() : BigDecimal.ZERO)
                         .isFinished(personRequest.isFinished())
                         .itemsClaimed(new ArrayList<>())
@@ -103,7 +103,7 @@ public class ExpenseService {
         expense.setTotalAmount(request.getTotalAmount());
         expense.setSubtotal(request.getSubtotal());
         expense.setTax(request.getTax());
-        expense.setTip(request.getTip());
+        expense.setServiceCharge(request.getServiceCharge());
 
         request.getItems().forEach(newItem -> {
             Optional<Item> existingItem = expense.getItems().stream()
@@ -130,7 +130,7 @@ public class ExpenseService {
     }
 
     private void validateExpenseRequest(ExpenseRequest request) {
-        BigDecimal calculatedTotal = request.getSubtotal().add(request.getTax()).add(request.getTip());
+        BigDecimal calculatedTotal = request.getSubtotal().add(request.getTax()).add(request.getServiceCharge());
         BigDecimal margin = new BigDecimal("5.00"); // 5 rupee margin
         BigDecimal difference = request.getTotalAmount().subtract(calculatedTotal).abs();
 
@@ -151,7 +151,7 @@ public class ExpenseService {
                 .totalAmount(expense.getTotalAmount())
                 .subtotal(expense.getSubtotal())
                 .tax(expense.getTax())
-                .tip(expense.getTip())
+                .serviceCharge(expense.getServiceCharge())
                 .items(expense.getItems().stream()
                         .map(this::mapToItemResponse)
                         .collect(Collectors.toList()))
@@ -180,7 +180,7 @@ public class ExpenseService {
                 .amountOwed(person.getAmountOwed())
                 .subtotal(person.getSubtotal())
                 .taxShare(person.getTaxShare())
-                .tipShare(person.getTipShare())
+                .serviceChargeShare(person.getServiceChargeShare())
                 .totalOwed(person.getTotalOwed())
                 .isFinished(person.isFinished())
                 .build();
@@ -272,7 +272,7 @@ public class ExpenseService {
                 .amountOwed(personRequest.getAmountOwed() != null ? personRequest.getAmountOwed() : BigDecimal.ZERO)
                 .subtotal(personRequest.getSubtotal() != null ? personRequest.getSubtotal() : BigDecimal.ZERO)
                 .taxShare(personRequest.getTaxShare() != null ? personRequest.getTaxShare() : BigDecimal.ZERO)
-                .tipShare(personRequest.getTipShare() != null ? personRequest.getTipShare() : BigDecimal.ZERO)
+                .serviceChargeShare(personRequest.getServiceChargeShare() != null ? personRequest.getServiceChargeShare() : BigDecimal.ZERO)
                 .totalOwed(personRequest.getTotalOwed() != null ? personRequest.getTotalOwed() : BigDecimal.ZERO)
                 .isFinished(personRequest.isFinished())
                 .itemsClaimed(new ArrayList<>())
@@ -317,7 +317,7 @@ public class ExpenseService {
                 .subtotal(parsedData.getSubtotal())
                 .restaurantName(parsedData.getRestaurantName())
                 .tax(parsedData.getTax())
-                .tip(parsedData.getTip())
+                .serviceCharge(parsedData.getServiceCharge())
                 .totalAmount(parsedData.getTotalAmount())
                 .items(itemRequests)
                 .payerName(payerName)

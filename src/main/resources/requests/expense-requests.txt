@@ -6,7 +6,7 @@ curl -X POST http://localhost:8080/expense \
   "totalAmount": 100.00,
   "subtotal": 80.00,
   "tax": 10.00,
-  "tip": 10.00,
+  "serviceCharge": 10.00,
   "items": [
     {
       "name": "Burger",
@@ -46,7 +46,7 @@ curl -X POST http://localhost:8080/expense \
   ]
 }'
 
-# Create an expense with validation error (totalAmount != subtotal + tax + tip)
+# Create an expense with validation error (totalAmount != subtotal + tax + serviceCharge)
 curl -X POST http://localhost:8080/expense \
   -H "Content-Type: application/json" \
   -d '{
@@ -54,7 +54,7 @@ curl -X POST http://localhost:8080/expense \
   "totalAmount": 105.00,
   "subtotal": 80.00,
   "tax": 10.00,
-  "tip": 10.00,
+  "serviceCharge": 10.00,
   "items": [
     {
       "name": "Burger",
@@ -89,7 +89,7 @@ curl -X PUT http://localhost:8080/expense/test-slug \
   "totalAmount": 120.00,
   "subtotal": 100.00,
   "tax": 10.00,
-  "tip": 10.00,
+  "serviceCharge": 10.00,
   "items": [
     {
       "name": "Pizza",

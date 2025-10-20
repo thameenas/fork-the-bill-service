@@ -79,7 +79,7 @@ public class ExpenseControllerTest {
                 .totalAmount(request.getTotalAmount())
                 .subtotal(request.getSubtotal())
                 .tax(request.getTax())
-                .tip(request.getTip())
+                .serviceCharge(request.getServiceCharge())
                 .build();
         
         when(expenseService.createExpense(any(ExpenseRequest.class))).thenReturn(response);
@@ -107,7 +107,7 @@ public class ExpenseControllerTest {
                 .totalAmount(new BigDecimal("100.00"))
                 .subtotal(new BigDecimal("80.00"))
                 .tax(new BigDecimal("10.00"))
-                .tip(new BigDecimal("10.00"))
+                .serviceCharge(new BigDecimal("10.00"))
                 .build();
         
         when(expenseService.getExpenseBySlug(slug)).thenReturn(response);
@@ -147,7 +147,7 @@ public class ExpenseControllerTest {
                 .totalAmount(request.getTotalAmount())
                 .subtotal(request.getSubtotal())
                 .tax(request.getTax())
-                .tip(request.getTip())
+                .serviceCharge(request.getServiceCharge())
                 .build();
         
         when(expenseService.updateExpenseBySlug(eq(slug), any(ExpenseRequest.class))).thenReturn(response);
@@ -188,7 +188,7 @@ public class ExpenseControllerTest {
                 .totalAmount(new BigDecimal("100.00"))
                 .subtotal(new BigDecimal("80.00"))
                 .tax(new BigDecimal("10.00"))
-                .tip(new BigDecimal("5.00")) // This makes the total 95, not 100
+                .serviceCharge(new BigDecimal("5.00")) // This makes the total 95, not 100
                 .items(List.of(
                         ItemRequest.builder()
                                 .name("Burger")
@@ -225,7 +225,7 @@ public class ExpenseControllerTest {
                 .totalAmount(new BigDecimal("100.00"))
                 .subtotal(new BigDecimal("80.00"))
                 .tax(new BigDecimal("10.00"))
-                .tip(new BigDecimal("10.00"))
+                .serviceCharge(new BigDecimal("10.00"))
                 .build();
         
         when(expenseService.claimItem(eq(slug), eq(itemId), eq(personId))).thenReturn(response);
@@ -294,7 +294,7 @@ public class ExpenseControllerTest {
                 .totalAmount(new BigDecimal("100.00"))
                 .subtotal(new BigDecimal("80.00"))
                 .tax(new BigDecimal("10.00"))
-                .tip(new BigDecimal("10.00"))
+                .serviceCharge(new BigDecimal("10.00"))
                 .build();
         
         when(expenseService.unclaimItem(eq(slug), eq(itemId), eq(personId))).thenReturn(response);
@@ -500,7 +500,7 @@ public class ExpenseControllerTest {
                 .totalAmount(new BigDecimal("100.00"))
                 .subtotal(new BigDecimal("80.00"))
                 .tax(new BigDecimal("10.00"))
-                .tip(new BigDecimal("10.00"))
+                .serviceCharge(new BigDecimal("10.00"))
                 .items(List.of(
                         ItemRequest.builder()
                                 .name("Burger")

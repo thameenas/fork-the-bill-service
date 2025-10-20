@@ -18,9 +18,9 @@ public class GeminiService {
     private static final String PROMPT = """
             Analyze this restaurant bill image and extract the following information in JSON format:
             {
-                "subtotal": "Subtotal amount before tax and tip",
+                "subtotal": "Subtotal amount before tax and tip/serviceCharge",
                 "tax": "Tax amount",
-                "tip": "Tip amount or service charge (if any)",
+                "serviceCharge": "Tip amount or service charge (if any)",
                 "totalAmount": "Total amount paid",
                 "restaurantName": "Name of the restaurant (if visible)",
                 "date": "Date of the bill (if visible)",

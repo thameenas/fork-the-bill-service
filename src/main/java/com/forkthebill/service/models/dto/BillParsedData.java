@@ -15,7 +15,7 @@ import java.util.List;
 public class BillParsedData {
     private BigDecimal subtotal;
     private BigDecimal tax;
-    private BigDecimal tip;
+    private BigDecimal serviceCharge;
     private BigDecimal totalAmount;
     private List<BillItem> items;
     private String restaurantName;

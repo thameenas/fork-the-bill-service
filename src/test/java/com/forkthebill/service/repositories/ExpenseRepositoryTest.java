@@ -31,7 +31,7 @@ public class ExpenseRepositoryTest {
         expense.setTotalAmount(new BigDecimal("100.00"));
         expense.setSubtotal(new BigDecimal("80.00"));
         expense.setTax(new BigDecimal("10.00"));
-        expense.setTip(new BigDecimal("10.00"));
+        expense.setServiceCharge(new BigDecimal("10.00"));
         
         entityManager.persist(expense);
         entityManager.flush();
@@ -64,7 +64,7 @@ public class ExpenseRepositoryTest {
         expense.setTotalAmount(new BigDecimal("200.00"));
         expense.setSubtotal(new BigDecimal("160.00"));
         expense.setTax(new BigDecimal("20.00"));
-        expense.setTip(new BigDecimal("20.00"));
+        expense.setServiceCharge(new BigDecimal("20.00"));
         
         entityManager.persist(expense);
         entityManager.flush();

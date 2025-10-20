@@ -17,7 +17,7 @@ Creates a new expense (bill) with items and optional people.
   "totalAmount": 100.00,
   "subtotal": 80.00,
   "tax": 10.00,
-  "tip": 10.00,
+  "serviceCharge": 10.00,
   "items": [
     {
       "name": "Burger",
@@ -49,7 +49,7 @@ Creates a new expense (bill) with items and optional people.
   "totalAmount": 100.00,
   "subtotal": 80.00,
   "tax": 10.00,
-  "tip": 10.00,
+  "serviceCharge": 10.00,
   "items": [
     {
       "id": "123e4567-e89b-12d3-a456-426614174001",
@@ -71,7 +71,7 @@ Creates a new expense (bill) with items and optional people.
       "amountOwed": 0.00,
       "subtotal": 0.00,
       "taxShare": 0.00,
-      "tipShare": 0.00,
+      "serviceChargeShare": 0.00,
       "totalOwed": 0.00,
       "isFinished": false
     },
@@ -81,7 +81,7 @@ Creates a new expense (bill) with items and optional people.
       "amountOwed": 0.00,
       "subtotal": 0.00,
       "taxShare": 0.00,
-      "tipShare": 0.00,
+      "serviceChargeShare": 0.00,
       "totalOwed": 0.00,
       "isFinished": false
     }
@@ -91,8 +91,8 @@ Creates a new expense (bill) with items and optional people.
 
 **Validation:**
 - `payerName` is required
-- `totalAmount`, `subtotal`, `tax`, and `tip` are required and must be positive
-- `totalAmount` must equal `subtotal + tax + tip`
+- `totalAmount`, `subtotal`, `tax`, and `serviceCharge` are required and must be positive
+- `totalAmount` must equal `subtotal + tax + serviceCharge`
 - At least one item is required
 
 ## Implementation Details

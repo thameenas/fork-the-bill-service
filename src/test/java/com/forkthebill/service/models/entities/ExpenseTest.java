@@ -29,7 +29,7 @@ class ExpenseTest {
                 .totalAmount(new BigDecimal("100.00"))
                 .subtotal(new BigDecimal("80.00"))
                 .tax(new BigDecimal("10.00"))
-                .tip(new BigDecimal("10.00"))
+                .serviceCharge(new BigDecimal("10.00"))
                 .items(new ArrayList<>())
                 .people(new ArrayList<>())
                 .build();
@@ -55,7 +55,7 @@ class ExpenseTest {
                 .amountOwed(BigDecimal.ZERO)
                 .subtotal(BigDecimal.ZERO)
                 .taxShare(BigDecimal.ZERO)
-                .tipShare(BigDecimal.ZERO)
+                .serviceChargeShare(BigDecimal.ZERO)
                 .totalOwed(BigDecimal.ZERO)
                 .isFinished(false)
                 .build();
@@ -67,7 +67,7 @@ class ExpenseTest {
                 .amountOwed(BigDecimal.ZERO)
                 .subtotal(BigDecimal.ZERO)
                 .taxShare(BigDecimal.ZERO)
-                .tipShare(BigDecimal.ZERO)
+                .serviceChargeShare(BigDecimal.ZERO)
                 .totalOwed(BigDecimal.ZERO)
                 .isFinished(false)
                 .build();
@@ -187,7 +187,7 @@ class ExpenseTest {
                 .amountOwed(BigDecimal.ZERO)
                 .subtotal(BigDecimal.ZERO)
                 .taxShare(BigDecimal.ZERO)
-                .tipShare(BigDecimal.ZERO)
+                .serviceChargeShare(BigDecimal.ZERO)
                 .totalOwed(BigDecimal.ZERO)
                 .isFinished(false)
                 .build();
@@ -372,8 +372,8 @@ class ExpenseTest {
         // Tax and tip should be split proportionally
         assertTrue(person1.getTaxShare().compareTo(BigDecimal.ZERO) > 0);
         assertTrue(person2.getTaxShare().compareTo(BigDecimal.ZERO) > 0);
-        assertTrue(person1.getTipShare().compareTo(BigDecimal.ZERO) > 0);
-        assertTrue(person2.getTipShare().compareTo(BigDecimal.ZERO) > 0);
+        assertTrue(person1.getServiceChargeShare().compareTo(BigDecimal.ZERO) > 0);
+        assertTrue(person2.getServiceChargeShare().compareTo(BigDecimal.ZERO) > 0);
     }
 
     @Test
@@ -389,7 +389,7 @@ class ExpenseTest {
 
         // Then
         assertEquals(0, person1.getTaxShare().compareTo(BigDecimal.ZERO));
-        assertEquals(0, person1.getTipShare().compareTo(BigDecimal.ZERO));
+        assertEquals(0, person1.getServiceChargeShare().compareTo(BigDecimal.ZERO));
     }
 
     @Test
@@ -405,7 +405,7 @@ class ExpenseTest {
         // Then
         BigDecimal expectedTotal = person1.getSubtotal()
                 .add(person1.getTaxShare())
-                .add(person1.getTipShare());
+                .add(person1.getServiceChargeShare());
         assertEquals(expectedTotal, person1.getTotalOwed());
     }
 

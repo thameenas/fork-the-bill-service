@@ -23,7 +23,7 @@ public class ExpenseResponse {
     private BigDecimal totalAmount;
     private BigDecimal subtotal;
     private BigDecimal tax;
-    private BigDecimal tip;
+    private BigDecimal serviceCharge;
 
     @Builder.Default
     private List<ItemResponse> items = new ArrayList<>();
