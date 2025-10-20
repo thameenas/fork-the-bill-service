@@ -43,10 +43,8 @@ public class Person {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal subtotal;
     
-    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal taxShare;
     
-    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal serviceChargeShare;
     
     @Column(nullable = false, precision = 10, scale = 2)
