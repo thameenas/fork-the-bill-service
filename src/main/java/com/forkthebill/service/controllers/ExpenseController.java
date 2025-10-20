@@ -7,6 +7,7 @@ import com.forkthebill.service.models.dto.PersonRequest;
 import com.forkthebill.service.services.ExpenseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/expense")
 @RequiredArgsConstructor
@@ -41,7 +43,8 @@ public class ExpenseController {
             return new ResponseEntity<>(response, HttpStatus.CREATED);
             
         } catch (Exception e) {
-            throw new RuntimeException("Failed to process image: " + e.getMessage(), e);
+            log.error("Error creating expense: {}", e.getMessage());
+            throw new RuntimeException("Failed to process image. Please try again.");
         }
     }
     
