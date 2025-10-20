@@ -146,7 +146,38 @@ public class Expense {
         return personSubtotal;
     }
 
+    private BigDecimal calculateSubtotalFromItems() {
+        return items.stream()
+                .map(Item::getPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal calculateTotalAmountFromSubtotal() {
+        BigDecimal total = subtotal;
+        
+        if (tax != null) {
+            total = total.add(tax);
+        }
+        
+        if (serviceCharge != null) {
+            total = total.add(serviceCharge);
+        }
+        
+        if (discount != null) {
+            total = total.subtract(discount);
+        }
+        
+        return total.setScale(2, RoundingMode.HALF_UP);
+    }
+
     public void recalculateAmounts() {
+        // Calculate subtotal from all items
+        this.subtotal = calculateSubtotalFromItems();
+        
+        // Calculate total amount from subtotal + tax + serviceCharge - discount
+        this.totalAmount = calculateTotalAmountFromSubtotal();
+        
         for (Person person : people) {
             // Calculate subtotal for this person
             BigDecimal personSubtotal = calculatePersonSubtotal(person);

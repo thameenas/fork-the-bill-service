@@ -100,8 +100,6 @@ public class ExpenseService {
                 .orElseThrow(() -> new ResourceNotFoundException("Expense not found with slug: " + slug));
 
         expense.setPayerName(request.getPayerName());
-        expense.setTotalAmount(request.getTotalAmount());
-        expense.setSubtotal(request.getSubtotal());
         expense.setTax(request.getTax());
         expense.setServiceCharge(request.getServiceCharge());
         expense.setDiscount(request.getDiscount());
