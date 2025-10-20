@@ -53,14 +53,12 @@ paths:
                   price: 6.02
               people:
                 - name: "John Doe"
-                  amountOwed: 22.84
                   subtotal: 19.25
                   taxShare: 1.93
                   serviceChargeShare: 1.66
                   totalOwed: 22.84
                   isFinished: false
                 - name: "Jane Smith"
-                  amountOwed: 22.83
                   subtotal: 19.25
                   taxShare: 1.92
                   serviceChargeShare: 1.66
@@ -405,7 +403,6 @@ paths:
               $ref: '#/components/schemas/PersonRequest'
             example:
               name: "Alice Johnson"
-              amountOwed: 15.25
               subtotal: 12.50
               taxShare: 1.25
               serviceChargeShare: 1.50
@@ -590,11 +587,6 @@ components:
           items:
             type: string
           example: ["item-uuid-123", "item-uuid-456"]
-        amountOwed:
-          type: number
-          format: decimal
-          description: Total amount owed by this person
-          example: 22.84
         subtotal:
           type: number
           format: decimal
@@ -638,11 +630,6 @@ components:
           items:
             type: string
           example: ["item-uuid-123", "item-uuid-456"]
-        amountOwed:
-          type: number
-          format: decimal
-          description: Total amount owed by this person
-          example: 22.84
         subtotal:
           type: number
           format: decimal
@@ -724,14 +711,12 @@ components:
             price: 6.02
         people:
           - name: "John Doe"
-            amountOwed: 22.84
             subtotal: 19.25
             taxShare: 1.93
             serviceChargeShare: 1.66
             totalOwed: 22.84
             isFinished: false
           - name: "Jane Smith"
-            amountOwed: 22.83
             subtotal: 19.25
             taxShare: 1.92
             serviceChargeShare: 1.66
@@ -762,7 +747,6 @@ components:
           - id: "person-uuid-456"
             name: "John Doe"
             itemsClaimed: ["item-uuid-123"]
-            amountOwed: 15.99
             subtotal: 15.99
             taxShare: 1.60
             serviceChargeShare: 1.38
@@ -771,7 +755,6 @@ components:
           - id: "person-uuid-789"
             name: "Jane Smith"
             itemsClaimed: ["item-uuid-456"]
-            amountOwed: 12.50
             subtotal: 12.50
             taxShare: 1.25
             serviceChargeShare: 1.08

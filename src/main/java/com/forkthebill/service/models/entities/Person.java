@@ -38,9 +38,6 @@ public class Person {
     private List<String> itemsClaimed = new ArrayList<>();
     
     @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal amountOwed;
-    
-    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal subtotal;
     
     private BigDecimal taxShare;

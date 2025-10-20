@@ -68,7 +68,6 @@ Creates a new expense (bill) with items and optional people.
     {
       "name": "Alice",
       "itemsClaimed": [],
-      "amountOwed": 0.00,
       "subtotal": 0.00,
       "taxShare": 0.00,
       "serviceChargeShare": 0.00,
@@ -78,7 +77,6 @@ Creates a new expense (bill) with items and optional people.
     {
       "name": "Bob",
       "itemsClaimed": [],
-      "amountOwed": 0.00,
       "subtotal": 0.00,
       "taxShare": 0.00,
       "serviceChargeShare": 0.00,

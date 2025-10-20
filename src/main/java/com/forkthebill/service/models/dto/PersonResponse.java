@@ -21,7 +21,6 @@ public class PersonResponse {
     @Builder.Default
     private List<String> itemsClaimed = new ArrayList<>();
     
-    private BigDecimal amountOwed;
     private BigDecimal subtotal;
     private BigDecimal taxShare;
     private BigDecimal serviceChargeShare;

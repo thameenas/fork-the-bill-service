@@ -438,7 +438,6 @@ public class ExpenseControllerTest {
         String slug = "test-slug";
         PersonRequest personRequest = PersonRequest.builder()
                 .name("John Doe")
-                .amountOwed(new BigDecimal("15.00"))
                 .build();
 
         ExpenseResponse expectedResponse = ExpenseResponse.builder()
@@ -446,7 +445,6 @@ public class ExpenseControllerTest {
                 .people(Arrays.asList(
                         PersonResponse.builder()
                                 .name("John Doe")
-                                .amountOwed(new BigDecimal("15.00"))
                                 .build()
                 ))
                 .build();

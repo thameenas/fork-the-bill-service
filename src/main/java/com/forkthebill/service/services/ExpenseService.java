@@ -68,7 +68,6 @@ public class ExpenseService {
             request.getPeople().forEach(personRequest -> {
                 Person person = Person.builder()
                         .name(personRequest.getName())
-                        .amountOwed(personRequest.getAmountOwed() != null ? personRequest.getAmountOwed() : BigDecimal.ZERO)
                         .subtotal(personRequest.getSubtotal() != null ? personRequest.getSubtotal() : BigDecimal.ZERO)
                         .taxShare(personRequest.getTaxShare() != null ? personRequest.getTaxShare() : BigDecimal.ZERO)
                         .serviceChargeShare(personRequest.getServiceChargeShare() != null ? personRequest.getServiceChargeShare() : BigDecimal.ZERO)
@@ -183,7 +182,6 @@ public class ExpenseService {
                 .id(person.getId())
                 .name(person.getName())
                 .itemsClaimed(person.getItemsClaimed())
-                .amountOwed(person.getAmountOwed())
                 .subtotal(person.getSubtotal())
                 .taxShare(person.getTaxShare())
                 .serviceChargeShare(person.getServiceChargeShare())
@@ -276,7 +274,6 @@ public class ExpenseService {
 
         Person person = Person.builder()
                 .name(personRequest.getName())
-                .amountOwed(personRequest.getAmountOwed() != null ? personRequest.getAmountOwed() : BigDecimal.ZERO)
                 .subtotal(personRequest.getSubtotal() != null ? personRequest.getSubtotal() : BigDecimal.ZERO)
                 .taxShare(personRequest.getTaxShare() != null ? personRequest.getTaxShare() : BigDecimal.ZERO)
                 .serviceChargeShare(personRequest.getServiceChargeShare() != null ? personRequest.getServiceChargeShare() : BigDecimal.ZERO)

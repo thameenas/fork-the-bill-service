@@ -553,7 +553,6 @@ public class ExpenseServiceTest {
                 .id(UUID.randomUUID())
                 .name("Person 2")
                 .itemsClaimed(new ArrayList<>())
-                .amountOwed(BigDecimal.ZERO)
                 .subtotal(BigDecimal.ZERO)
                 .taxShare(BigDecimal.ZERO)
                 .serviceChargeShare(BigDecimal.ZERO)
@@ -623,7 +622,6 @@ public class ExpenseServiceTest {
                 .id(UUID.randomUUID())
                 .name("Person 1")
                 .itemsClaimed(new ArrayList<>())
-                .amountOwed(BigDecimal.ZERO)
                 .subtotal(BigDecimal.ZERO)
                 .taxShare(BigDecimal.ZERO)
                 .serviceChargeShare(BigDecimal.ZERO)
@@ -753,7 +751,6 @@ public class ExpenseServiceTest {
         Person person = Person.builder()
                 .id(id)
                 .name(name)
-                .amountOwed(BigDecimal.ZERO)
                 .subtotal(BigDecimal.ZERO)
                 .taxShare(BigDecimal.ZERO)
                 .serviceChargeShare(BigDecimal.ZERO)
@@ -781,7 +778,6 @@ public class ExpenseServiceTest {
         String slug = "test-slug";
         PersonRequest personRequest = PersonRequest.builder()
                 .name("John Doe")
-                .amountOwed(new BigDecimal("15.00"))
                 .isFinished(false)
                 .build();
 
@@ -809,7 +805,6 @@ public class ExpenseServiceTest {
         assertEquals(slug, result.getSlug());
         assertEquals(1, result.getPeople().size());
         assertEquals("John Doe", result.getPeople().get(0).getName());
-        assertEquals(new BigDecimal("15.00"), result.getPeople().get(0).getAmountOwed());
         assertFalse(result.getPeople().get(0).isFinished());
 
         verify(expenseRepository).findBySlug(slug);
@@ -864,7 +859,6 @@ public class ExpenseServiceTest {
         assertEquals(1, result.getPeople().size());
         PersonResponse addedPerson = result.getPeople().get(0);
         assertEquals("John Doe", addedPerson.getName());
-        assertEquals(BigDecimal.ZERO, addedPerson.getAmountOwed());
         assertEquals(BigDecimal.ZERO, addedPerson.getSubtotal());
         assertEquals(BigDecimal.ZERO, addedPerson.getTaxShare());
         assertEquals(BigDecimal.ZERO, addedPerson.getServiceChargeShare());
@@ -882,7 +876,6 @@ public class ExpenseServiceTest {
         String slug = "test-slug";
         PersonRequest personRequest = PersonRequest.builder()
                 .name("John Doe")
-                .amountOwed(new BigDecimal("20.00"))
                 .subtotal(new BigDecimal("15.00"))
                 .taxShare(new BigDecimal("2.00"))
                 .serviceChargeShare(new BigDecimal("3.00"))
@@ -915,7 +908,6 @@ public class ExpenseServiceTest {
         assertEquals(1, result.getPeople().size());
         PersonResponse addedPerson = result.getPeople().get(0);
         assertEquals("John Doe", addedPerson.getName());
-        assertEquals(new BigDecimal("20.00"), addedPerson.getAmountOwed());
         assertEquals(new BigDecimal("15.00"), addedPerson.getSubtotal());
         assertEquals(new BigDecimal("2.00"), addedPerson.getTaxShare());
         assertEquals(new BigDecimal("3.00"), addedPerson.getServiceChargeShare());

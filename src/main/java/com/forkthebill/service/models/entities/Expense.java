@@ -7,10 +7,7 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "expenses")
@@ -182,27 +179,29 @@ public class Expense {
             // Calculate subtotal for this person
             BigDecimal personSubtotal = calculatePersonSubtotal(person);
             person.setSubtotal(personSubtotal);
+            BigDecimal personTotalOwed = personSubtotal;
 
             // Calculate tax and service charge shares proportionally
             if (subtotal.compareTo(BigDecimal.ZERO) > 0) {
                 BigDecimal ratio = personSubtotal.divide(subtotal, 10, RoundingMode.HALF_UP);
                 if (tax != null) {
                     person.setTaxShare(tax.multiply(ratio).setScale(2, RoundingMode.HALF_UP));
-                    person.setTotalOwed(personSubtotal.add(person.getTaxShare()));
+                    personTotalOwed = personTotalOwed.add(person.getTaxShare());
                 }
                 if (serviceCharge != null) {
                     person.setServiceChargeShare(serviceCharge.multiply(ratio).setScale(2, RoundingMode.HALF_UP));
-                    person.setTotalOwed(personSubtotal.add(person.getServiceChargeShare()));
+                    personTotalOwed = personTotalOwed.add(person.getServiceChargeShare());
                 }
                 if (discount != null) {
                     person.setDiscountShare(discount.multiply(ratio).setScale(2, RoundingMode.HALF_UP));
-                    person.setTotalOwed(personSubtotal.subtract(person.getDiscountShare()));
+                    personTotalOwed = personTotalOwed.subtract(person.getDiscountShare());
                 }
             } else {
                 person.setTaxShare(BigDecimal.ZERO);
                 person.setServiceChargeShare(BigDecimal.ZERO);
                 person.setDiscountShare(BigDecimal.ZERO);
             }
+            person.setTotalOwed(personTotalOwed);
         }
     }
 }

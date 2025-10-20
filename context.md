@@ -49,7 +49,7 @@ Fork the Bill is a web app inspired by Splitwise, designed to simplify splitting
 - **Expense:**
   - `id`, `slug`, `createdAt`, `payerName`, `totalAmount`, `subtotal`, `tax`, `tip`
   - `items`: array of `{ id, name, price, claimedBy: [personName, ...] }`
-  - `people`: array of `{ name, itemsClaimed, amountOwed, subtotal, taxShare, tipShare, totalOwed, isFinished }`
+  - `people`: array of `{ name, itemsClaimed, subtotal, taxShare, tipShare, totalOwed, isFinished }`
 
 ---
 
