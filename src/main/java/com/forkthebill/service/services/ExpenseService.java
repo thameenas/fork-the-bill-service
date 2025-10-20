@@ -18,6 +18,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -98,28 +99,33 @@ public class ExpenseService {
         Expense expense = expenseRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Expense not found with slug: " + slug));
 
-        // Update basic expense properties
         expense.setPayerName(request.getPayerName());
         expense.setTotalAmount(request.getTotalAmount());
         expense.setSubtotal(request.getSubtotal());
         expense.setTax(request.getTax());
         expense.setServiceCharge(request.getServiceCharge());
 
-        request.getItems().forEach(newItem -> {
-            Optional<Item> existingItem = expense.getItems().stream()
-                    .filter(existing -> existing.getId().equals(newItem.getId()))
-                    .findFirst();
-            if (existingItem.isPresent()) {
-                existingItem.get().setName(newItem.getName());
-                existingItem.get().setPrice(newItem.getPrice());
-                System.out.println("Updated existing item");
+        request.getItems().forEach(itemRequest -> {
+            Optional<Item> matchingExisting = (itemRequest.getId() == null)
+                    ? Optional.empty()
+                    : expense.getItems().stream()
+                            .filter(existing -> Objects.equals(existing.getId(), itemRequest.getId()))
+                            .findFirst();
+
+            if (matchingExisting.isPresent()) {
+                Item existing = matchingExisting.get();
+                existing.setName(itemRequest.getName());
+                existing.setPrice(itemRequest.getPrice());
+                existing.setQuantity(itemRequest.getQuantity());
+                existing.setTotalQuantity(itemRequest.getTotalQuantity());
             } else {
                 Item item = Item.builder()
-                        .name(newItem.getName())
-                        .price(newItem.getPrice())
+                        .name(itemRequest.getName())
+                        .price(itemRequest.getPrice())
+                        .quantity(itemRequest.getQuantity())
+                        .totalQuantity(itemRequest.getTotalQuantity())
                         .claimedBy(new ArrayList<>())
                         .build();
-                System.out.println("Updated new item");
                 expense.addItem(item);
             }
         });
