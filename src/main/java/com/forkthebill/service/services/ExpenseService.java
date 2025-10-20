@@ -104,6 +104,7 @@ public class ExpenseService {
         expense.setSubtotal(request.getSubtotal());
         expense.setTax(request.getTax());
         expense.setServiceCharge(request.getServiceCharge());
+        expense.setDiscount(request.getDiscount());
 
         request.getItems().forEach(itemRequest -> {
             Optional<Item> matchingExisting = (itemRequest.getId() == null)
@@ -158,6 +159,7 @@ public class ExpenseService {
                 .subtotal(expense.getSubtotal())
                 .tax(expense.getTax())
                 .serviceCharge(expense.getServiceCharge())
+                .discount(expense.getDiscount())
                 .items(expense.getItems().stream()
                         .map(this::mapToItemResponse)
                         .collect(Collectors.toList()))
@@ -187,6 +189,7 @@ public class ExpenseService {
                 .subtotal(person.getSubtotal())
                 .taxShare(person.getTaxShare())
                 .serviceChargeShare(person.getServiceChargeShare())
+                .discountShare(person.getDiscountShare())
                 .totalOwed(person.getTotalOwed())
                 .isFinished(person.isFinished())
                 .build();

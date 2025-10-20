@@ -25,6 +25,7 @@ public class PersonResponse {
     private BigDecimal subtotal;
     private BigDecimal taxShare;
     private BigDecimal serviceChargeShare;
+    private BigDecimal discountShare;
     private BigDecimal totalOwed;
     private boolean isFinished;
 }

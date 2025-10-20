@@ -42,6 +42,8 @@ public class Expense {
 
     private BigDecimal serviceCharge;
 
+    private BigDecimal discount;
+
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
@@ -155,12 +157,14 @@ public class Expense {
                 BigDecimal ratio = personSubtotal.divide(subtotal, 10, RoundingMode.HALF_UP);
                 person.setTaxShare(tax.multiply(ratio).setScale(2, RoundingMode.HALF_UP));
                 person.setServiceChargeShare(serviceCharge.multiply(ratio).setScale(2, RoundingMode.HALF_UP));
+                person.setDiscountShare(discount.multiply(ratio).setScale(2, RoundingMode.HALF_UP));
             } else {
                 person.setTaxShare(BigDecimal.ZERO);
                 person.setServiceChargeShare(BigDecimal.ZERO);
+                person.setDiscountShare(BigDecimal.ZERO);
             }
 
-            person.setTotalOwed(personSubtotal.add(person.getTaxShare()).add(person.getServiceChargeShare()));
+            person.setTotalOwed(personSubtotal.add(person.getTaxShare()).add(person.getServiceChargeShare().subtract(person.getDiscountShare())));
         }
     }
 }

@@ -38,6 +38,8 @@ public class ExpenseRequest {
 
     private BigDecimal serviceCharge;
 
+    private BigDecimal discount;
+
     @NotNull(message = "Items list cannot be null")
     @Size(min = 1, message = "At least one item is required")
     @Valid

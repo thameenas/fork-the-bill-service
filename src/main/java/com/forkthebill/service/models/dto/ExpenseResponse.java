@@ -24,6 +24,7 @@ public class ExpenseResponse {
     private BigDecimal subtotal;
     private BigDecimal tax;
     private BigDecimal serviceCharge;
+    private BigDecimal discount;
 
     @Builder.Default
     private List<ItemResponse> items = new ArrayList<>();

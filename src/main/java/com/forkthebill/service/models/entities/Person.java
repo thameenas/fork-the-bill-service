@@ -46,6 +46,8 @@ public class Person {
     private BigDecimal taxShare;
     
     private BigDecimal serviceChargeShare;
+
+    private BigDecimal discountShare;
     
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal totalOwed;
