@@ -105,10 +105,30 @@ The expense creation endpoint is implemented with the following components:
 6. **Exception Handling**: Global exception handler for API errors
 7. **Validation**: Bean validation for request payloads and custom validation for total amount
 
-## Running the Application
+## Running the Application Locally
+
+The application uses Docker Compose to run a PostgreSQL database locally.
+
+**Prerequisites:**
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) must be installed and running on your machine.
+
+To start the database:
+```bash
+docker compose up -d
+```
+
+To start the application:
+```bash
+SPRING_PROFILES_ACTIVE=local ./gradlew bootRun
+```
+The server will start on port `8000`.
+
+### Accessing the Local Database
+
+You can interact with your local PostgreSQL database directly from your terminal by executing into the running Docker container and using the `psql` command-line tool:
 
 ```bash
-./gradlew bootRun
+docker exec -it fork-the-bill-service-postgres-1 psql -U postgres -d forkthebill
 ```
 
 ## Running Tests
