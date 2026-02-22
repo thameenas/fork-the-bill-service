@@ -121,7 +121,7 @@ To start the application:
 ```bash
 SPRING_PROFILES_ACTIVE=local ./gradlew bootRun
 ```
-The server will start on port `8000`.
+The server will start on port `8080`.
 
 ### Accessing the Local Database
 
