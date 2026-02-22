@@ -87,7 +87,7 @@ The core entities are `Expense`, `Item`, and `Person`, managed via JPA. UUIDs ar
 *   **BillParsedData** (DTO): Internal DTO for AI service response. Contains parsed `payerName`, `totalAmount`, `subtotal`, `tax`, `serviceCharge`, and a list of `ItemRequest` objects.
 
 ## API & Interfaces
-The service exposes a RESTful API as defined in `apidoc.yaml`. All endpoints currently lack authentication. The server defaults to running on port `8000`.
+The service exposes a RESTful API as defined in `apidoc.yaml`. All endpoints currently lack authentication. The server defaults to running on port `8080`.
 
 *   **`POST /expense`**: Creates a new expense.
     *   Request: `ExpenseRequest` (JSON)
@@ -158,4 +158,4 @@ Error responses uniformly use the `ApiError` schema:
 *   **Financial Calculations**: The `ExpenseService` is responsible for calculating individual `subtotal`, `taxShare`, `serviceChargeShare`, and `totalOwed` for each person. Tax and service charge are always distributed proportionally based on each person's claimed item subtotal. Precision for financial calculations should ideally use `BigDecimal` to avoid floating-point errors.
 *   **Authentication**: Although `spring-boot-starter-security` is included and `SecurityConfig` exists, `apidoc.yaml` explicitly states that "Currently, this API does not require authentication. All endpoints are publicly accessible." This implies the security configuration might be minimal or a placeholder for future enhancements.
 *   **Real-time Updates**: The current backend design expects clients to poll the `GET /expense/{slug}` endpoint for updates, rather than using WebSockets.
-*   **Local Development Setup**: For local development, the PostgreSQL database is typically started via `docker compose up -d`, exposing it on host port `5433`. The application is then run using the `local` Spring profile (`SPRING_PROFILES_ACTIVE=local ./gradlew bootRun`), which configures it to connect to this local Dockerized database. The default server port for the application is `8000`.
+*   **Local Development Setup**: For local development, the PostgreSQL database is typically started via `docker compose up -d`, exposing it on host port `5433`. The application is then run using the `local` Spring profile (`SPRING_PROFILES_ACTIVE=local ./gradlew bootRun`), which configures it to connect to this local Dockerized database. The default server port for the application is `8080`.
