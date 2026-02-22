@@ -24,24 +24,23 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // Disable CSRF for API endpoints
-            .csrf(AbstractHttpConfigurer::disable)
-            
-            // Configure CORS
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            
-            // Configure session management to be stateless
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            
-            // Allow all requests (anonymous access)
-            .authorizeHttpRequests(authz -> authz
-                .anyRequest().permitAll()
-            )
-            
-            // Disable form login and basic auth
-            .httpBasic(AbstractHttpConfigurer::disable)
-            .formLogin(AbstractHttpConfigurer::disable)
-            .logout(AbstractHttpConfigurer::disable);
+                // Disable CSRF for API endpoints
+                .csrf(AbstractHttpConfigurer::disable)
+
+                // Configure CORS
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                // Configure session management to be stateless
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // Allow all requests (anonymous access)
+                .authorizeHttpRequests(authz -> authz
+                        .anyRequest().permitAll())
+
+                // Disable form login and basic auth
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable);
 
         return http.build();
     }
@@ -49,25 +48,26 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        
-        // Configure allowed origins from properties
-        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
-        
+
+        // Configure allowed origin patterns from properties (supports wildcards like
+        // https://*.vercel.app)
+        configuration.setAllowedOriginPatterns(Arrays.asList(allowedOrigins.split(",")));
+
         // Allow all methods
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        
+
         // Allow all headers
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        
+
         // Allow credentials
         configuration.setAllowCredentials(true);
-        
+
         // Cache preflight requests for 1 hour
         configuration.setMaxAge(3600L);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
-        
+
         return source;
     }
 }
